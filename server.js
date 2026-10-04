@@ -17,11 +17,15 @@ io.on('connection', (socket) => {
     console.log('Подключился игрок:', socket.id);
 
     // --- СОЗДАНИЕ КОМНАТЫ ---
-    socket.on('createRoom', () => {
+    socket.on('createRoom', ({ playerName, avatarId }) => {
         const roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+        const name = (playerName || 'Игрок').slice(0, 20);
+        const avatar = avatarId || 1;
 
         rooms[roomCode] = {
             players: [socket.id],
+            names: { [socket.id]: name },
+            avatars: { [socket.id]: avatar },
             currentQuestionIndex: 0,
             scores: { [socket.id]: 0 },
             gameQuestions: pickRandomTicket(questions),
@@ -32,11 +36,11 @@ io.on('connection', (socket) => {
 
         socket.join(roomCode);
         socket.emit('roomCreated', roomCode);
-        console.log('Создана комната:', roomCode);
+        console.log('Создана комната:', roomCode, 'Игрок:', name, 'Аватар:', avatar);
     });
 
     // --- ПОДКЛЮЧЕНИЕ К КОМНАТЕ ---
-    socket.on('joinRoom', (roomCode) => {
+    socket.on('joinRoom', ({ roomCode, playerName, avatarId }) => {
         const room = rooms[roomCode];
 
         if (!room) {
@@ -48,11 +52,23 @@ io.on('connection', (socket) => {
             return;
         }
 
+        const name = (playerName || 'Игрок').slice(0, 20);
+        const avatar = avatarId || 1;
+
         room.players.push(socket.id);
+        room.names[socket.id] = name;
+        room.avatars[socket.id] = avatar;
         room.scores[socket.id] = 0;
         socket.join(roomCode);
 
-        console.log('Игрок вошёл в комнату:', roomCode);
+        console.log('Игрок вошёл:', roomCode, 'Имя:', name, 'Аватар:', avatar);
+
+        // Отправляем обоим информацию об игроках
+        io.to(roomCode).emit('playersInfo', {
+            names: room.names,
+            avatars: room.avatars,
+            players: room.players
+        });
 
         startNewRound(roomCode);
     });
@@ -79,7 +95,8 @@ io.on('connection', (socket) => {
             correctIndex: currentQuestion.correct
         });
 
-        socket.to(roomCode).emit('opponentAnswered');
+        // Сообщаем сопернику: этот игрок ответил + его результат (для реакции)
+        socket.to(roomCode).emit('opponentAnswered', { isCorrect });
 
         if (Object.keys(room.answers).length === room.players.length) {
             endRound(roomCode);
@@ -92,12 +109,9 @@ io.on('connection', (socket) => {
         if (!room) return;
 
         room.rematchVotes[socket.id] = true;
-        console.log('Реванш запрошен игроком:', socket.id, 'Голоса:', room.rematchVotes);
 
-        // Сообщаем сопернику, что кто-то ждёт
         socket.to(roomCode).emit('rematchWaiting');
 
-        // Если оба готовы — стартуем
         if (Object.keys(room.rematchVotes).length === room.players.length) {
             if (room.rematchTimer) {
                 clearTimeout(room.rematchTimer);
@@ -105,12 +119,10 @@ io.on('connection', (socket) => {
             }
             startRematch(roomCode);
         } else {
-            // Запускаем тайм-аут, если ещё нет
             if (!room.rematchTimer) {
                 room.rematchTimer = setTimeout(() => {
                     const r = rooms[roomCode];
                     if (!r) return;
-                    console.log('Реванш не состоялся — тайм-аут');
                     io.to(roomCode).emit('rematchCanceled', 'Соперник не ответил. Возвращаемся в меню.');
                     cleanupRoom(roomCode);
                 }, 30000);
@@ -118,25 +130,20 @@ io.on('connection', (socket) => {
         }
     });
 
-    // --- ОТМЕНА РЕВАНША (уход в меню) ---
-        socket.on('cancelRematch', (roomCode) => {
+    // --- ОТМЕНА РЕВАНША ---
+    socket.on('cancelRematch', (roomCode) => {
         const room = rooms[roomCode];
         if (!room) return;
-
-        console.log('Реванш отменён игроком:', socket.id);
 
         if (room.rematchTimer) {
             clearTimeout(room.rematchTimer);
             room.rematchTimer = null;
         }
 
-        // Уведомляем ТОЛЬКО соперника (не себя)
         socket.to(roomCode).emit('rematchCanceled', 'Соперник отказался от реванша.');
-
         cleanupRoom(roomCode);
     });
 
-    // --- ОТКЛЮЧЕНИЕ ---
     socket.on('disconnect', () => {
         console.log('Игрок отключился:', socket.id);
     });
@@ -166,6 +173,8 @@ function endRound(roomCode) {
     io.to(roomCode).emit('roundResult', {
         correctIndex: currentQuestion.correct,
         scores: room.scores,
+        names: room.names,
+        avatars: room.avatars,
         answers: room.answers
     });
 
@@ -178,18 +187,21 @@ function endRound(roomCode) {
             const [id1, id2] = room.players;
             const score1 = room.scores[id1];
             const score2 = room.scores[id2];
+            const name1 = room.names[id1];
+            const name2 = room.names[id2];
+            const avatar1 = room.avatars[id1];
+            const avatar2 = room.avatars[id2];
 
             if (score1 > score2) {
-                io.to(id1).emit('youWon', { myScore: score1, opponentScore: score2 });
-                io.to(id2).emit('youLost', { myScore: score2, opponentScore: score1 });
+                io.to(id1).emit('youWon', { myScore: score1, opponentScore: score2, myName: name1, opponentName: name2, myAvatar: avatar1, opponentAvatar: avatar2 });
+                io.to(id2).emit('youLost', { myScore: score2, opponentScore: score1, myName: name2, opponentName: name1, myAvatar: avatar2, opponentAvatar: avatar1 });
             } else if (score2 > score1) {
-                io.to(id2).emit('youWon', { myScore: score2, opponentScore: score1 });
-                io.to(id1).emit('youLost', { myScore: score1, opponentScore: score2 });
+                io.to(id2).emit('youWon', { myScore: score2, opponentScore: score1, myName: name2, opponentName: name1, myAvatar: avatar2, opponentAvatar: avatar1 });
+                io.to(id1).emit('youLost', { myScore: score1, opponentScore: score2, myName: name1, opponentName: name2, myAvatar: avatar1, opponentAvatar: avatar2 });
             } else {
-                io.to(id1).emit('youTied', { myScore: score1, opponentScore: score2 });
-                io.to(id2).emit('youTied', { myScore: score2, opponentScore: score1 });
+                io.to(id1).emit('youTied', { myScore: score1, opponentScore: score2, myName: name1, opponentName: name2, myAvatar: avatar1, opponentAvatar: avatar2 });
+                io.to(id2).emit('youTied', { myScore: score2, opponentScore: score1, myName: name2, opponentName: name1, myAvatar: avatar2, opponentAvatar: avatar1 });
             }
-            // Комната не удаляется — ждём решения о реванше
         }
     }, 2500);
 }
@@ -198,21 +210,16 @@ function startRematch(roomCode) {
     const room = rooms[roomCode];
     if (!room) return;
 
-    console.log('Стартуем реванш в комнате:', roomCode);
-
-    // Сбрасываем состояние
     room.currentQuestionIndex = 0;
     room.answers = {};
     room.rematchVotes = {};
     room.rematchTimer = null;
 
-    // Сбрасываем счёт и перемешиваем вопросы
     room.players.forEach(id => { room.scores[id] = 0; });
     room.gameQuestions = pickRandomTicket(questions);
 
     io.to(roomCode).emit('rematchStarting');
 
-    // Небольшая пауза, чтобы клиенты успели скрыть финальный экран
     setTimeout(() => {
         startNewRound(roomCode);
     }, 500);
@@ -227,15 +234,13 @@ function cleanupRoom(roomCode) {
     }
     delete rooms[roomCode];
 }
-// Выбирает один случайный билет и возвращает его вопросы
+
 function pickRandomTicket(allQuestions) {
-    // Собираем все уникальные номера билетов
     const ticketNumbers = [...new Set(allQuestions.map(q => q.ticket))];
-    // Берём случайный
     const randomTicket = ticketNumbers[Math.floor(Math.random() * ticketNumbers.length)];
-    // Возвращаем вопросы только этого билета
     return allQuestions.filter(q => q.ticket === randomTicket);
 }
-server.listen(process.env.PORT || 3000, () => {
+
+server.listen(process.env.PORT || 3000, '0.0.0.0', () => {
     console.log('✅ Сервер запущен! Открой в браузере: http://localhost:3000');
 });

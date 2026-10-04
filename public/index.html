@@ -2,216 +2,136 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1e3a5f">
     <title>ПДД Дуэль</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; }
-
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { margin: 0; padding: 0; min-height: 100vh; }
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            max-width: 620px;
-            margin: 0 auto;
-            padding: 40px 20px;
-            min-height: 100vh;
             color: #1f2937;
             background: linear-gradient(135deg, #eef2f7 0%, #dbe4f0 100%);
             background-attachment: fixed;
             line-height: 1.5;
+            padding: 20px 16px 40px;
+            max-width: 640px;
+            margin: 0 auto;
         }
-
-        h1 {
-            text-align: center;
-            font-weight: 700;
-            font-size: 32px;
-            margin-bottom: 30px;
-            color: #1e3a5f;
-        }
-
+        h1 { text-align: center; font-weight: 700; font-size: 28px; margin: 0 0 24px; color: #1e3a5f; }
         button {
-            display: block;
-            width: 100%;
-            padding: 14px 18px;
-            margin: 10px 0;
-            font-size: 16px;
-            font-family: inherit;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            border-radius: 10px;
-            background: #ffffff;
-            color: #1f2937;
+            display: block; width: 100%; padding: 16px 18px; margin: 10px 0;
+            font-size: 17px; font-family: inherit; font-weight: 600;
+            cursor: pointer; border: none; border-radius: 12px;
+            background: #ffffff; color: #1f2937;
             box-shadow: 0 2px 6px rgba(30, 58, 95, 0.08);
             transition: all 0.15s ease;
+            touch-action: manipulation;
+            min-height: 56px;
         }
-        button:hover {
-            background: #f8fafc;
-            box-shadow: 0 4px 12px rgba(30, 58, 95, 0.12);
-            transform: translateY(-1px);
-        }
-        button:active { transform: translateY(0); }
-
+        button:hover { background: #f8fafc; box-shadow: 0 4px 12px rgba(30, 58, 95, 0.12); }
         input {
+            width: 100%; padding: 16px 18px; font-size: 17px; font-family: inherit;
+            margin-bottom: 10px; border: 2px solid #e2e8f0; border-radius: 12px;
+            background: #ffffff; transition: border-color 0.15s ease; min-height: 56px;
+        }
+        input:focus { outline: none; border-color: #3b82f6; }
+        #menu { background: rgba(255, 255, 255, 0.75); padding: 28px 22px; border-radius: 18px; box-shadow: 0 8px 24px rgba(30, 58, 95, 0.08); backdrop-filter: blur(10px); }
+        #game { display: none; background: rgba(255, 255, 255, 0.88); padding: 22px 18px; border-radius: 18px; box-shadow: 0 8px 24px rgba(30, 58, 95, 0.08); }
+        #questionInfo { color: #64748b; font-size: 13px; font-weight: 600; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 8px; }
+        #questionImage { display: none; width: 100%; max-width: 100%; max-height: 220px; object-fit: contain; border-radius: 12px; margin: 12px 0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        #questionText { font-size: 19px; font-weight: 600; margin: 12px 0 20px; line-height: 1.4; color: #0f172a; }
+
+        /* Прогресс-бар времени */
+        #timeBarWrap {
             width: 100%;
-            padding: 14px 16px;
-            font-size: 16px;
-            font-family: inherit;
-            margin-bottom: 10px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            background: #ffffff;
-            transition: border-color 0.15s ease;
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 6px;
+            margin: 16px 0 8px;
+            overflow: hidden;
         }
-        input:focus {
-            outline: none;
-            border-color: #3b82f6;
-        }
-
-        #menu {
-            background: rgba(255, 255, 255, 0.7);
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(30, 58, 95, 0.08);
-            backdrop-filter: blur(10px);
+        #timeBar {
+            height: 100%;
+            width: 100%;
+            background: #22c55e;
+            border-radius: 6px;
+            transition: width 1s linear, background-color 0.3s ease;
         }
 
-        #game {
-            display: none;
-            background: rgba(255, 255, 255, 0.85);
-            padding: 24px;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(30, 58, 95, 0.08);
-        }
-
-        #timer {
-            font-weight: 700;
-            color: #d32f2f;
-            text-align: center;
-            font-size: 18px;
-            margin-top: 20px;
-            min-height: 24px;
-        }
-        #questionInfo {
-            color: #64748b;
-            font-size: 13px;
-            font-weight: 600;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        #questionText {
-            font-size: 19px;
-            font-weight: 600;
-            margin: 16px 0 20px;
-            line-height: 1.4;
-            color: #0f172a;
+        #timer { font-weight: 700; color: #22c55e; text-align: center; font-size: 18px; margin-top: 4px; min-height: 26px; transition: color 0.3s ease; }
+        #timer.pulse { animation: timerPulse 0.6s ease-in-out infinite; }
+        @keyframes timerPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.15); opacity: 0.7; }
         }
 
         .correct { background: #86efac !important; color: #14532d !important; }
         .wrong { background: #fca5a5 !important; color: #7f1d1d !important; }
         .disabled { opacity: 0.6; pointer-events: none; }
-
-        /* --- ЭКРАН ФИНАЛА --- */
-        #finalScreen {
-            display: none;
-            text-align: center;
-            padding: 40px 24px;
-            border-radius: 16px;
-            margin-top: 20px;
-            box-shadow: 0 8px 24px rgba(30, 58, 95, 0.1);
-        }
-        #finalScreen h2 {
-            font-size: 42px;
-            margin: 10px 0;
-            font-weight: 700;
-        }
-        #finalScreen .score {
-            font-size: 20px;
-            margin: 20px 0;
-            line-height: 1.8;
-        }
-        #finalScreen .message {
-            font-size: 17px;
-            font-style: italic;
-            margin: 20px 0;
-            opacity: 0.85;
-        }
-        #finalScreen button {
-            max-width: 300px;
-            margin: 12px auto 0;
-            font-size: 17px;
-            padding: 16px;
-        }
-
-        .win  { background: #d4edda; border: 3px solid #28a745; }
+        #finalScreen { display: none; text-align: center; padding: 36px 20px; border-radius: 18px; margin-top: 12px; box-shadow: 0 8px 24px rgba(30, 58, 95, 0.1); }
+        #finalScreen h2 { font-size: 38px; margin: 8px 0; font-weight: 700; }
+        #finalScreen .score { font-size: 19px; margin: 18px 0; line-height: 1.7; }
+        #finalScreen .message { font-size: 16px; font-style: italic; margin: 18px 0; opacity: 0.85; }
+        #finalScreen button { max-width: 340px; margin: 10px auto 0; font-size: 17px; padding: 18px; }
+        .win { background: #d4edda; border: 3px solid #28a745; }
         .lose { background: #f8d7da; border: 3px solid #dc3545; }
-        .tie  { background: #fff3cd; border: 3px solid #ffc107; }
-
-        /* --- ЭКРАН ОЖИДАНИЯ РЕВАНША --- */
-        #rematchWaiting {
-            display: none;
-            text-align: center;
-            padding: 60px 20px;
-            background: #e3f2fd;
-            border: 3px solid #2196f3;
-            border-radius: 16px;
-            margin-top: 20px;
-            box-shadow: 0 8px 24px rgba(30, 58, 95, 0.1);
-        }
-        #rematchWaiting h2 { font-size: 32px; margin: 10px 0; font-weight: 700; }
-        #rematchWaiting p { font-size: 17px; color: #475569; }
-        .spinner {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 5px solid #bbdefb;
-            border-top-color: #2196f3;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
+        .tie { background: #fff3cd; border: 3px solid #ffc107; }
+        #rematchWaiting { display: none; text-align: center; padding: 50px 20px; background: #e3f2fd; border: 3px solid #2196f3; border-radius: 18px; margin-top: 12px; }
+        #rematchWaiting h2 { font-size: 26px; margin: 10px 0; font-weight: 700; }
+        #rematchWaiting p { font-size: 16px; color: #475569; }
+        .spinner { display: inline-block; width: 40px; height: 40px; border: 5px solid #bbdefb; border-top-color: #2196f3; border-radius: 50%; animation: spin 1s linear infinite; margin: 18px auto; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        #status { text-align: center; color: #64748b; font-size: 14px; margin-top: 16px; line-height: 1.6; }
+        .room-code { display: inline-block; font-size: 30px; font-weight: 700; letter-spacing: 4px; color: #1e3a5f; background: #dbeafe; padding: 12px 24px; border-radius: 12px; border: 2px solid #93c5fd; margin: 10px 0; font-family: 'Courier New', monospace; user-select: all; cursor: pointer; transition: 0.15s; }
+        .room-code:active { background: #bfdbfe; transform: scale(1.03); }
+        .copied-note { color: #16a34a; font-size: 14px; font-weight: 600; margin-top: 4px; }
+        .waiting-note { color: #64748b; font-size: 14px; margin-top: 6px; }
 
-        #status {
-            text-align: center;
-            color: #64748b;
-            font-size: 14px;
-            margin-top: 16px;
-        }
+        /* Сетка аватарок */
+        .avatar-label { display: block; font-size: 14px; font-weight: 600; color: #475569; margin: 8px 0 6px; }
+        .avatar-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px; }
+        .avatar-option { cursor: pointer; border-radius: 10px; padding: 4px; background: #f1f5f9; border: 2px solid transparent; transition: 0.15s; display: flex; align-items: center; justify-content: center; aspect-ratio: 1 / 1; }
+        .avatar-option:hover { background: #e2e8f0; transform: scale(1.05); }
+        .avatar-option.selected { border-color: #3b82f6; background: #dbeafe; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+        .avatar-option img { width: 100%; height: 100%; object-fit: contain; border-radius: 6px; }
 
-        
-        .room-code {
-            display: inline-block;
-            font-size: 32px;
-            font-weight: 700;
-            letter-spacing: 4px;
-            color: #1e3a5f;
-            background: #dbeafe;
-            padding: 12px 24px;
+        /* Плашка с игроками */
+        .players-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f1f5f9;
             border-radius: 12px;
-            border: 2px solid #93c5fd;
-            margin: 10px 0;
-            font-family: 'Courier New', monospace;
-            user-select: all;
-            cursor: pointer;
-            transition: 0.15s;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            position: relative;
         }
-        .room-code:hover {
-            background: #bfdbfe;
-            transform: scale(1.03);
-        }
-        .copied-note {
-            color: #16a34a;
-            font-size: 14px;
-            font-weight: 600;
-            margin-top: 4px;
-        }
-        .waiting-note {
-            color: #64748b;
-            font-size: 14px;
-            margin-top: 6px;
+        .player-slot { display: flex; align-items: center; gap: 8px; min-width: 0; overflow: hidden; max-width: 45%; }
+        .player-slot.right { justify-content: flex-end; flex-direction: row-reverse; }
+        .player-slot img { width: 48px; height: 48px; object-fit: contain; border-radius: 8px; background: #fff; padding: 2px; flex-shrink: 0; transition: transform 0.2s ease; }
+        .player-slot img.reacting { transform: scale(1.15); }
+        .player-slot .player-name { font-size: 15px; font-weight: 600; color: #1e3a5f; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vs-separator { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 13px; font-weight: 700; color: #94a3b8; pointer-events: none; }
+
+        @media (max-width: 480px) {
+            body { padding: 12px 12px 30px; }
+            h1 { font-size: 24px; margin-bottom: 18px; }
+            #menu { padding: 22px 16px; border-radius: 14px; }
+            #game { padding: 18px 14px; border-radius: 14px; }
+            button { padding: 16px; font-size: 16px; margin: 8px 0; }
+            input { padding: 15px 16px; font-size: 16px; }
+            #questionText { font-size: 18px; margin: 10px 0 16px; }
+            #questionImage { max-height: 180px; margin: 10px 0; }
+            #finalScreen h2 { font-size: 32px; }
+            #finalScreen .score { font-size: 17px; }
+            .room-code { font-size: 26px; padding: 10px 18px; letter-spacing: 3px; }
+            .avatar-grid { grid-template-columns: repeat(5, 1fr); gap: 6px; }
+            .player-slot img { width: 40px; height: 40px; }
+            .player-slot .player-name { font-size: 14px; }
         }
     </style>
 </head>
@@ -219,18 +139,35 @@
 
     <div id="menu">
         <h1>🚗 ПДД Дуэль</h1>
+        <input id="playerName" placeholder="Ваше имя" maxlength="20" autocomplete="off">
+
+        <label class="avatar-label">Выберите аватарку:</label>
+        <div class="avatar-grid" id="avatarGrid"></div>
+
         <button onclick="createRoom()">Создать комнату</button>
-        <hr style="border:none; border-top:1px solid #e2e8f0; margin: 20px 0;">
-        <input id="roomInput" placeholder="Введите код комнаты">
+        <hr style="border:none; border-top:1px solid #e2e8f0; margin: 18px 0;">
+        <input id="roomInput" placeholder="Введите код комнаты" autocomplete="off" autocapitalize="characters" maxlength="6">
         <button onclick="joinRoom()">Войти в комнату</button>
         <p id="status"></p>
     </div>
 
-        <div id="game">
+    <div id="game">
+        <div class="players-bar">
+            <div class="player-slot">
+                <img id="myAvatarImg" src="" alt="">
+                <span class="player-name" id="myNameBar">Вы</span>
+            </div>
+            <span class="vs-separator">VS</span>
+            <div class="player-slot right">
+                <img id="oppAvatarImg" src="" alt="">
+                <span class="player-name" id="oppNameBar">Соперник</span>
+            </div>
+        </div>
         <h3 id="questionInfo"></h3>
-        <img id="questionImage" src="" alt="" style="display:none; width:100%; max-width:600px; border-radius:10px; margin:10px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <img id="questionImage" src="" alt="">
         <p id="questionText"></p>
         <div id="options"></div>
+        <div id="timeBarWrap"><div id="timeBar"></div></div>
         <p id="timer"></p>
     </div>
 
@@ -252,136 +189,171 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        // ============================================
-        // ЗВУКИ (Web Audio API — без файлов)
-        // ============================================
+        // ЗВУКИ
         let audioCtx = null;
-
         function ensureAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             return audioCtx;
         }
-
-        // Базовый сигнал: частота, длительность, тип волны
         function playTone(frequency, duration, type = 'sine', volume = 0.15, startDelay = 0) {
             const ctx = ensureAudio();
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
-
             osc.type = type;
             osc.frequency.value = frequency;
-
             const startTime = ctx.currentTime + startDelay;
             const endTime = startTime + duration;
-
             gain.gain.setValueAtTime(0, startTime);
             gain.gain.linearRampToValueAtTime(volume, startTime + 0.02);
             gain.gain.exponentialRampToValueAtTime(0.001, endTime);
-
             osc.connect(gain);
             gain.connect(ctx.destination);
             osc.start(startTime);
             osc.stop(endTime);
         }
+        function soundCorrect() { playTone(660, 0.15, 'sine', 0.15, 0); playTone(880, 0.20, 'sine', 0.15, 0.10); }
+        function soundWrong() { playTone(392, 0.15, 'sine', 0.12, 0); playTone(311, 0.25, 'sine', 0.12, 0.13); }
+        function soundTimeout() { playTone(320, 0.20, 'triangle', 0.12, 0); }
+        function soundTick() { playTone(880, 0.05, 'sine', 0.06, 0); }
+        function soundWin() { playTone(523, 0.15, 'sine', 0.15, 0); playTone(659, 0.15, 'sine', 0.15, 0.15); playTone(784, 0.15, 'sine', 0.15, 0.30); playTone(1047, 0.40, 'sine', 0.18, 0.45); }
+        function soundLose() { playTone(440, 0.20, 'sine', 0.13, 0); playTone(330, 0.20, 'sine', 0.13, 0.20); playTone(262, 0.45, 'sine', 0.13, 0.40); }
+        function soundTie() { playTone(440, 0.20, 'sine', 0.13, 0); playTone(440, 0.20, 'sine', 0.13, 0.22); }
 
-        // ✅ Верный ответ — восходящая нота
-        function soundCorrect() {
-            playTone(660, 0.15, 'sine', 0.15, 0);
-            playTone(880, 0.20, 'sine', 0.15, 0.10);
-        }
-
-        // ❌ Неверный ответ — низкий «бззз»
-                function soundWrong() {
-            playTone(392, 0.15, 'sine', 0.12, 0);    // G4
-            playTone(311, 0.25, 'sine', 0.12, 0.13); // Eb4
-        }
-
-        // ⏰ Время вышло — короткий писк
-        function soundTimeout() {
-            playTone(320, 0.20, 'triangle', 0.12, 0);
-        }
-
-        // 🏆 Победа — фанфарная последовательность
-        function soundWin() {
-            playTone(523, 0.15, 'sine', 0.15, 0);    // C5
-            playTone(659, 0.15, 'sine', 0.15, 0.15); // E5
-            playTone(784, 0.15, 'sine', 0.15, 0.30); // G5
-            playTone(1047, 0.40, 'sine', 0.18, 0.45); // C6
-        }
-
-        // 😢 Поражение — нисходящая последовательность
-        function soundLose() {
-            playTone(440, 0.20, 'sine', 0.13, 0);    // A4
-            playTone(330, 0.20, 'sine', 0.13, 0.20); // E4
-            playTone(262, 0.45, 'sine', 0.13, 0.40); // C4
-        }
-
-        // 🤝 Ничья
-        function soundTie() {
-            playTone(440, 0.20, 'sine', 0.13, 0);
-            playTone(440, 0.20, 'sine', 0.13, 0.22);
-        }
-
-        // ============================================
         // ИГРА
-        // ============================================
         const socket = io();
         let currentRoom = '';
         let timerInterval = null;
         let hasAnswered = false;
         let myId = null;
         let iCanceledRematch = false;
+        let myName = localStorage.getItem('pdd_player_name') || '';
+        let myAvatar = parseInt(localStorage.getItem('pdd_player_avatar')) || 1;
+        let opponentAvatar = 1;
+        let reactionTimeouts = {};
+
+        const TOTAL_AVATARS = 9;
+        const AVATARS_PATH = '/avatars/';
+
+        function buildAvatarGrid() {
+            const grid = document.getElementById('avatarGrid');
+            grid.innerHTML = '';
+            for (let i = 1; i <= TOTAL_AVATARS; i++) {
+                const div = document.createElement('div');
+                div.className = 'avatar-option' + (i === myAvatar ? ' selected' : '');
+                div.dataset.id = i;
+                div.innerHTML = '<img src="' + AVATARS_PATH + 'p' + i + '_normal.png" alt="Аватар ' + i + '">';
+                div.onclick = () => selectAvatar(i);
+                grid.appendChild(div);
+            }
+        }
+
+        function selectAvatar(id) {
+            myAvatar = id;
+            localStorage.setItem('pdd_player_avatar', id);
+            document.querySelectorAll('.avatar-option').forEach(el => {
+                el.classList.toggle('selected', parseInt(el.dataset.id) === id);
+            });
+        }
+
+        if (myName) document.getElementById('playerName').value = myName;
+        buildAvatarGrid();
+
+        document.getElementById('playerName').addEventListener('input', (e) => {
+            myName = e.target.value.trim();
+            localStorage.setItem('pdd_player_name', myName);
+        });
+
+        function reactAvatar(imgElement, state) {
+            const key = imgElement.id;
+            if (reactionTimeouts[key]) {
+                clearTimeout(reactionTimeouts[key]);
+            }
+            const avatarId = imgElement.dataset.avatarId;
+            if (!avatarId) return;
+
+            imgElement.src = AVATARS_PATH + 'p' + avatarId + '_' + state + '.png';
+            imgElement.classList.add('reacting');
+
+            reactionTimeouts[key] = setTimeout(() => {
+                imgElement.src = AVATARS_PATH + 'p' + avatarId + '_normal.png';
+                imgElement.classList.remove('reacting');
+            }, 1500);
+        }
 
         socket.on('connect', () => { myId = socket.id; });
 
         function createRoom() {
-            ensureAudio(); // разблокируем звук после первого клика
-            socket.emit('createRoom');
+            ensureAudio();
+            const name = document.getElementById('playerName').value.trim();
+            if (!name) {
+                document.getElementById('status').innerText = '⚠️ Введите имя';
+                document.getElementById('playerName').focus();
+                return;
+            }
+            myName = name;
+            socket.emit('createRoom', { playerName: name, avatarId: myAvatar });
         }
 
-                        socket.on('roomCreated', (code) => {
+        socket.on('roomCreated', (code) => {
             currentRoom = code;
-
             const showCode = (copied) => {
                 document.getElementById('status').innerHTML =
                     'Комната создана!<br>' +
-                    '<div class="room-code" id="roomCodeBox" title="Нажмите, чтобы скопировать">' + code + '</div><br>' +
+                    '<div class="room-code" id="roomCodeBox">' + code + '</div><br>' +
                     (copied 
-                        ? '<div class="copied-note">✅ Код скопирован в буфер обмена</div>'
-                        : '<div class="copied-note" style="color:#dc2626;">⚠️ Скопируйте код вручную</div>'
+                        ? '<div class="copied-note">✅ Код скопирован</div>'
+                        : '<div class="copied-note" style="color:#dc2626;">⚠️ Скопируйте вручную</div>'
                     ) +
                     '<div class="waiting-note">Отправьте код другу. Ждём второго игрока…</div>';
 
                 document.getElementById('roomCodeBox').onclick = () => {
                     navigator.clipboard.writeText(code).then(() => {
                         const box = document.getElementById('roomCodeBox');
-                        const oldBg = box.style.background;
                         box.style.background = '#86efac';
-                        setTimeout(() => { box.style.background = oldBg; }, 400);
+                        setTimeout(() => { box.style.background = ''; }, 400);
                     });
                 };
             };
-
-            navigator.clipboard.writeText(code)
-                .then(() => showCode(true))
-                .catch(() => showCode(false));
+            navigator.clipboard.writeText(code).then(() => showCode(true)).catch(() => showCode(false));
         });
 
         function joinRoom() {
             ensureAudio();
+            const name = document.getElementById('playerName').value.trim();
+            if (!name) {
+                document.getElementById('status').innerText = '⚠️ Введите имя';
+                document.getElementById('playerName').focus();
+                return;
+            }
             const code = document.getElementById('roomInput').value.trim().toUpperCase();
-            if (!code) return;
+            if (!code) {
+                document.getElementById('status').innerText = '⚠️ Введите код комнаты';
+                return;
+            }
+            myName = name;
             currentRoom = code;
-            socket.emit('joinRoom', code);
+            socket.emit('joinRoom', { roomCode: code, playerName: name, avatarId: myAvatar });
         }
 
         socket.on('errorMessage', (msg) => {
             document.getElementById('status').innerText = 'Ошибка: ' + msg;
+        });
+
+        socket.on('playersInfo', (data) => {
+            const opponentId = data.players.find(id => id !== myId);
+            const oppName = data.names[opponentId] || 'Соперник';
+            opponentAvatar = data.avatars[opponentId] || 1;
+
+            const myImg = document.getElementById('myAvatarImg');
+            myImg.dataset.avatarId = myAvatar;
+            myImg.src = AVATARS_PATH + 'p' + myAvatar + '_normal.png';
+            document.getElementById('myNameBar').innerText = data.names[myId] || myName;
+
+            const oppImg = document.getElementById('oppAvatarImg');
+            oppImg.dataset.avatarId = opponentAvatar;
+            oppImg.src = AVATARS_PATH + 'p' + opponentAvatar + '_normal.png';
+            document.getElementById('oppNameBar').innerText = oppName;
         });
 
         socket.on('nextQuestion', (data) => {
@@ -395,12 +367,10 @@
         function showQuestion(data) {
             hasAnswered = false;
             const q = data.question;
-
             document.getElementById('questionInfo').innerText = 
                 'Вопрос ' + data.questionNumber + ' из ' + data.totalQuestions;
             document.getElementById('questionText').innerText = q.text;
 
-                        // Картинка
             const img = document.getElementById('questionImage');
             if (q.image) {
                 img.src = '/images/' + q.image;
@@ -422,20 +392,59 @@
                 optionsDiv.appendChild(btn);
             });
 
+            // Таймер + прогресс-бар
             let timeLeft = 15;
-            document.getElementById('timer').innerText = '⏱ Осталось: ' + timeLeft + ' сек';
+            const bar = document.getElementById('timeBar');
+            const timerEl = document.getElementById('timer');
+
+            const updateTimer = () => {
+                timerEl.innerText = '⏱ Осталось: ' + timeLeft + ' сек';
+                bar.style.width = (timeLeft / 15 * 100) + '%';
+
+                // Цвет полосы и таймера
+                let color;
+                if (timeLeft > 10) color = '#22c55e';       // зелёный
+                else if (timeLeft > 5) color = '#f59e0b';   // жёлтый
+                else color = '#ef4444';                     // красный
+                bar.style.background = color;
+                timerEl.style.color = color;
+
+                // Пульсация в последние 5 секунд
+                if (timeLeft <= 5 && timeLeft > 0) {
+                    timerEl.classList.add('pulse');
+                } else {
+                    timerEl.classList.remove('pulse');
+                }
+
+                // Звук тика в последние 3 секунды
+                if (timeLeft <= 3 && timeLeft > 0) {
+                    soundTick();
+                }
+            };
+
+            // Сброс перед стартом
+            bar.style.transition = 'none';
+            bar.style.width = '100%';
+            bar.style.background = '#22c55e';
+            timerEl.style.color = '#22c55e';
+            timerEl.classList.remove('pulse');
+
+            // Принудительно применяем переход заново
+            setTimeout(() => {
+                bar.style.transition = 'width 1s linear, background-color 0.3s ease';
+            }, 50);
+
+            updateTimer();
             clearInterval(timerInterval);
             timerInterval = setInterval(() => {
                 timeLeft--;
                 if (timeLeft >= 0) {
-                    document.getElementById('timer').innerText = '⏱ Осталось: ' + timeLeft + ' сек';
+                    updateTimer();
                 }
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
-                    if (!hasAnswered) {
-                        soundTimeout();
-                        submitAnswer(-1);
-                    }
+                    timerEl.classList.remove('pulse');
+                    if (!hasAnswered) { soundTimeout(); submitAnswer(-1); }
                 }
             }, 1000);
         }
@@ -443,32 +452,24 @@
         function submitAnswer(index) {
             if (hasAnswered) return;
             hasAnswered = true;
-
-            const timeLeft = parseInt(
-                document.getElementById('timer').innerText.replace(/\D/g, '')
-            ) || 0;
-
             clearInterval(timerInterval);
+            document.getElementById('timer').classList.remove('pulse');
+            const timeLeft = parseInt(document.getElementById('timer').innerText.replace(/\D/g, '')) || 0;
             document.getElementById('timer').innerText = '⏳ Ждём соперника...';
+            document.getElementById('timer').style.color = '#64748b';
             document.getElementById('options').classList.add('disabled');
-
-            socket.emit('submitAnswer', {
-                roomCode: currentRoom,
-                answerIndex: index,
-                timeLeft: timeLeft
-            });
+            socket.emit('submitAnswer', { roomCode: currentRoom, answerIndex: index, timeLeft: timeLeft });
         }
 
         socket.on('yourAnswer', (data) => {
             const buttons = document.querySelectorAll('#options button');
             buttons.forEach((btn) => {
                 const idx = parseInt(btn.dataset.index);
-                if (idx === data.correctIndex) {
-                    btn.classList.add('correct');
-                } else if (idx === parseInt(btn.dataset.index) && !data.isCorrect) {
-                    // ничего — не подсвечиваем неправильный выбор игрока (по желанию можно)
-                }
+                if (idx === data.correctIndex) btn.classList.add('correct');
             });
+
+            const myImg = document.getElementById('myAvatarImg');
+            reactAvatar(myImg, data.isCorrect ? 'happy' : 'sad');
 
             if (data.isCorrect) {
                 soundCorrect();
@@ -479,68 +480,68 @@
             }
         });
 
-        socket.on('opponentAnswered', () => {
-            document.getElementById('questionInfo').innerText += ' (соперник уже ответил)';
+        socket.on('opponentAnswered', (data) => {
+            document.getElementById('questionInfo').innerText += ' (соперник ответил)';
+            const oppImg = document.getElementById('oppAvatarImg');
+            if (data && typeof data.isCorrect === 'boolean') {
+                reactAvatar(oppImg, data.isCorrect ? 'happy' : 'sad');
+            }
         });
 
         socket.on('roundResult', (data) => {
             clearInterval(timerInterval);
-
+            document.getElementById('timer').classList.remove('pulse');
             const buttons = document.querySelectorAll('#options button');
             buttons.forEach((btn) => {
                 const idx = parseInt(btn.dataset.index);
                 if (idx === data.correctIndex) btn.classList.add('correct');
             });
-
             const myScore = data.scores[myId] || 0;
             const opponentId = Object.keys(data.scores).find(id => id !== myId);
             const opponentScore = data.scores[opponentId] || 0;
-
+            const oppName = data.names[opponentId] || 'Соперник';
             document.getElementById('timer').innerText =
-                '📊 Счёт — Вы: ' + myScore + ' | Соперник: ' + opponentScore;
+                '📊 ' + myName + ': ' + myScore + ' | ' + oppName + ': ' + opponentScore;
+            document.getElementById('timer').style.color = '#1e3a5f';
         });
 
-        // --- ФИНАЛЬНЫЕ ЭКРАНЫ ---
         socket.on('youWon', (data) => showFinal('win', data));
         socket.on('youLost', (data) => showFinal('lose', data));
         socket.on('youTied', (data) => showFinal('tie', data));
 
         function showFinal(type, data) {
             clearInterval(timerInterval);
-
             document.getElementById('game').style.display = 'none';
             document.getElementById('rematchWaiting').style.display = 'none';
             const screen = document.getElementById('finalScreen');
             screen.style.display = 'block';
-
             screen.classList.remove('win', 'lose', 'tie');
             screen.classList.add(type);
 
-            const title = document.getElementById('finalTitle');
-            const score = document.getElementById('finalScore');
+            document.getElementById('finalTitle').innerText =
+                type === 'win' ? '🏆 ПОБЕДА!' :
+                type === 'lose' ? '😢 ПОРАЖЕНИЕ' : '🤝 НИЧЬЯ!';
+
+            document.getElementById('finalScore').innerHTML =
+                data.myName + ': <b>' + data.myScore + '</b><br>' +
+                data.opponentName + ': <b>' + data.opponentScore + '</b>';
+
             const message = document.getElementById('finalMessage');
             const btn = document.getElementById('finalButton');
 
-            score.innerHTML =
-                'Ваш счёт: <b>' + data.myScore + '</b><br>' +
-                'Счёт соперника: <b>' + data.opponentScore + '</b>';
-
             if (type === 'win') {
-                title.innerText = '🏆 ПОБЕДА!';
-                message.innerText = 'Отличная реакция! Вы знаете ПДД лучше соперника. 🚗💨';
+                message.innerText = 'Отличная реакция! Вы знаете ПДД лучше ' + data.opponentName + '. 🚗💨';
                 btn.innerText = '🔄 Играть снова';
                 btn.style.background = '';
                 btn.style.color = '';
                 soundWin();
             } else if (type === 'lose') {
-                title.innerText = '😢 ПОРАЖЕНИЕ';
-                message.innerText = 'Не расстраивайтесь! Возьмите реванш и покажите, на что вы способны.';
+                message.innerText = 'Не расстраивайтесь! Возьмите реванш у ' + data.opponentName + '.';
                 btn.innerText = '⚔️ РЕВАНШ!';
                 btn.style.background = '#dc3545';
                 btn.style.color = '#fff';
                 soundLose();
             } else {
-                title.innerText = '🤝 НИЧЬЯ!';
                 message.innerText = 'Вы оба знаете ПДД на отлично!';
                 btn.innerText = '🔄 Играть снова';
                 btn.style.background = '';
@@ -549,7 +550,6 @@
             }
         }
 
-        // --- РЕВАНШ ---
         function requestRematch() {
             document.getElementById('finalScreen').style.display = 'none';
             document.getElementById('rematchWaiting').style.display = 'block';
@@ -567,8 +567,7 @@
             document.getElementById('rematchWaiting').style.display = 'none';
             document.getElementById('game').style.display = 'none';
             document.getElementById('menu').style.display = 'block';
-            document.getElementById('status').innerText = 
-                'Создайте новую комнату или войдите в существующую.';
+            document.getElementById('status').innerText = 'Создайте новую комнату или войдите в существующую.';
             document.getElementById('roomInput').value = '';
             currentRoom = '';
         }
@@ -576,8 +575,7 @@
         socket.on('rematchWaiting', () => {
             const finalScreen = document.getElementById('finalScreen');
             if (finalScreen.style.display !== 'none') {
-                document.getElementById('finalMessage').innerText += 
-                    ' (Соперник уже ждёт реванш!)';
+                document.getElementById('finalMessage').innerText += ' (Соперник уже ждёт реванш!)';
             }
         });
 
