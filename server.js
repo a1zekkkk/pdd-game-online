@@ -236,6 +236,6 @@ function pickRandomTicket(allQuestions) {
     // Возвращаем вопросы только этого билета
     return allQuestions.filter(q => q.ticket === randomTicket);
 }
-server.listen(3000, () => {
+server.listen(process.env.PORT || 3000, () => {
     console.log('✅ Сервер запущен! Открой в браузере: http://localhost:3000');
 });
