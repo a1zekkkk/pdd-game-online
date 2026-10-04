@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ПДД Дуэль</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            max-width: 620px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            min-height: 100vh;
+            color: #1f2937;
+            background: linear-gradient(135deg, #eef2f7 0%, #dbe4f0 100%);
+            background-attachment: fixed;
+            line-height: 1.5;
+        }
+
+        h1 {
+            text-align: center;
+            font-weight: 700;
+            font-size: 32px;
+            margin-bottom: 30px;
+            color: #1e3a5f;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 14px 18px;
+            margin: 10px 0;
+            font-size: 16px;
+            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+            background: #ffffff;
+            color: #1f2937;
+            box-shadow: 0 2px 6px rgba(30, 58, 95, 0.08);
+            transition: all 0.15s ease;
+        }
+        button:hover {
+            background: #f8fafc;
+            box-shadow: 0 4px 12px rgba(30, 58, 95, 0.12);
+            transform: translateY(-1px);
+        }
+        button:active { transform: translateY(0); }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            font-family: inherit;
+            margin-bottom: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: #ffffff;
+            transition: border-color 0.15s ease;
+        }
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        #menu {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(30, 58, 95, 0.08);
+            backdrop-filter: blur(10px);
+        }
+
+        #game {
+            display: none;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(30, 58, 95, 0.08);
+        }
+
+        #timer {
+            font-weight: 700;
+            color: #d32f2f;
+            text-align: center;
+            font-size: 18px;
+            margin-top: 20px;
+            min-height: 24px;
+        }
+        #questionInfo {
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        #questionText {
+            font-size: 19px;
+            font-weight: 600;
+            margin: 16px 0 20px;
+            line-height: 1.4;
+            color: #0f172a;
+        }
+
+        .correct { background: #86efac !important; color: #14532d !important; }
+        .wrong { background: #fca5a5 !important; color: #7f1d1d !important; }
+        .disabled { opacity: 0.6; pointer-events: none; }
+
+        /* --- ЭКРАН ФИНАЛА --- */
+        #finalScreen {
+            display: none;
+            text-align: center;
+            padding: 40px 24px;
+            border-radius: 16px;
+            margin-top: 20px;
+            box-shadow: 0 8px 24px rgba(30, 58, 95, 0.1);
+        }
+        #finalScreen h2 {
+            font-size: 42px;
+            margin: 10px 0;
+            font-weight: 700;
+        }
+        #finalScreen .score {
+            font-size: 20px;
+            margin: 20px 0;
+            line-height: 1.8;
+        }
+        #finalScreen .message {
+            font-size: 17px;
+            font-style: italic;
+            margin: 20px 0;
+            opacity: 0.85;
+        }
+        #finalScreen button {
+            max-width: 300px;
+            margin: 12px auto 0;
+            font-size: 17px;
+            padding: 16px;
+        }
+
+        .win  { background: #d4edda; border: 3px solid #28a745; }
+        .lose { background: #f8d7da; border: 3px solid #dc3545; }
+        .tie  { background: #fff3cd; border: 3px solid #ffc107; }
+
+        /* --- ЭКРАН ОЖИДАНИЯ РЕВАНША --- */
+        #rematchWaiting {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+            background: #e3f2fd;
+            border: 3px solid #2196f3;
+            border-radius: 16px;
+            margin-top: 20px;
+            box-shadow: 0 8px 24px rgba(30, 58, 95, 0.1);
+        }
+        #rematchWaiting h2 { font-size: 32px; margin: 10px 0; font-weight: 700; }
+        #rematchWaiting p { font-size: 17px; color: #475569; }
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 5px solid #bbdefb;
+            border-top-color: #2196f3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        #status {
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 16px;
+        }
+
+        
+        .room-code {
+            display: inline-block;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: #1e3a5f;
+            background: #dbeafe;
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: 2px solid #93c5fd;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            user-select: all;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .room-code:hover {
+            background: #bfdbfe;
+            transform: scale(1.03);
+        }
+        .copied-note {
+            color: #16a34a;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        .waiting-note {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="menu">
+        <h1>🚗 ПДД Дуэль</h1>
+        <button onclick="createRoom()">Создать комнату</button>
+        <hr style="border:none; border-top:1px solid #e2e8f0; margin: 20px 0;">
+        <input id="roomInput" placeholder="Введите код комнаты">
+        <button onclick="joinRoom()">Войти в комнату</button>
+        <p id="status"></p>
+    </div>
+
+        <div id="game">
+        <h3 id="questionInfo"></h3>
+        <img id="questionImage" src="" alt="" style="display:none; width:100%; max-width:600px; border-radius:10px; margin:10px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <p id="questionText"></p>
+        <div id="options"></div>
+        <p id="timer"></p>
+    </div>
+
+    <div id="finalScreen">
+        <h2 id="finalTitle"></h2>
+        <div class="score" id="finalScore"></div>
+        <div class="message" id="finalMessage"></div>
+        <button id="finalButton" onclick="requestRematch()">🔄 Играть снова</button>
+        <button onclick="cancelRematch()" style="background:#94a3b8; color:#fff;">↩️ В меню</button>
+    </div>
+
+    <div id="rematchWaiting">
+        <h2>⏳ Ждём соперника…</h2>
+        <div class="spinner"></div>
+        <p>Соперник ещё не нажал «Реванш».</p>
+        <p><small style="color:#94a3b8;">Если он не ответит в течение 30 секунд — вернётесь в меню.</small></p>
+        <button onclick="cancelRematch()" style="background:#94a3b8; color:#fff; max-width:300px; margin:20px auto 0;">↩️ Отменить и в меню</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // ============================================
+        // ЗВУКИ (Web Audio API — без файлов)
+        // ============================================
+        let audioCtx = null;
+
+        function ensureAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        // Базовый сигнал: частота, длительность, тип волны
+        function playTone(frequency, duration, type = 'sine', volume = 0.15, startDelay = 0) {
+            const ctx = ensureAudio();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = type;
+            osc.frequency.value = frequency;
+
+            const startTime = ctx.currentTime + startDelay;
+            const endTime = startTime + duration;
+
+            gain.gain.setValueAtTime(0, startTime);
+            gain.gain.linearRampToValueAtTime(volume, startTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, endTime);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(startTime);
+            osc.stop(endTime);
+        }
+
+        // ✅ Верный ответ — восходящая нота
+        function soundCorrect() {
+            playTone(660, 0.15, 'sine', 0.15, 0);
+            playTone(880, 0.20, 'sine', 0.15, 0.10);
+        }
+
+        // ❌ Неверный ответ — низкий «бззз»
+                function soundWrong() {
+            playTone(392, 0.15, 'sine', 0.12, 0);    // G4
+            playTone(311, 0.25, 'sine', 0.12, 0.13); // Eb4
+        }
+
+        // ⏰ Время вышло — короткий писк
+        function soundTimeout() {
+            playTone(320, 0.20, 'triangle', 0.12, 0);
+        }
+
+        // 🏆 Победа — фанфарная последовательность
+        function soundWin() {
+            playTone(523, 0.15, 'sine', 0.15, 0);    // C5
+            playTone(659, 0.15, 'sine', 0.15, 0.15); // E5
+            playTone(784, 0.15, 'sine', 0.15, 0.30); // G5
+            playTone(1047, 0.40, 'sine', 0.18, 0.45); // C6
+        }
+
+        // 😢 Поражение — нисходящая последовательность
+        function soundLose() {
+            playTone(440, 0.20, 'sine', 0.13, 0);    // A4
+            playTone(330, 0.20, 'sine', 0.13, 0.20); // E4
+            playTone(262, 0.45, 'sine', 0.13, 0.40); // C4
+        }
+
+        // 🤝 Ничья
+        function soundTie() {
+            playTone(440, 0.20, 'sine', 0.13, 0);
+            playTone(440, 0.20, 'sine', 0.13, 0.22);
+        }
+
+        // ============================================
+        // ИГРА
+        // ============================================
+        const socket = io();
+        let currentRoom = '';
+        let timerInterval = null;
+        let hasAnswered = false;
+        let myId = null;
+        let iCanceledRematch = false;
+
+        socket.on('connect', () => { myId = socket.id; });
+
+        function createRoom() {
+            ensureAudio(); // разблокируем звук после первого клика
+            socket.emit('createRoom');
+        }
+
+                        socket.on('roomCreated', (code) => {
+            currentRoom = code;
+
+            const showCode = (copied) => {
+                document.getElementById('status').innerHTML =
+                    'Комната создана!<br>' +
+                    '<div class="room-code" id="roomCodeBox" title="Нажмите, чтобы скопировать">' + code + '</div><br>' +
+                    (copied 
+                        ? '<div class="copied-note">✅ Код скопирован в буфер обмена</div>'
+                        : '<div class="copied-note" style="color:#dc2626;">⚠️ Скопируйте код вручную</div>'
+                    ) +
+                    '<div class="waiting-note">Отправьте код другу. Ждём второго игрока…</div>';
+
+                document.getElementById('roomCodeBox').onclick = () => {
+                    navigator.clipboard.writeText(code).then(() => {
+                        const box = document.getElementById('roomCodeBox');
+                        const oldBg = box.style.background;
+                        box.style.background = '#86efac';
+                        setTimeout(() => { box.style.background = oldBg; }, 400);
+                    });
+                };
+            };
+
+            navigator.clipboard.writeText(code)
+                .then(() => showCode(true))
+                .catch(() => showCode(false));
+        });
+
+        function joinRoom() {
+            ensureAudio();
+            const code = document.getElementById('roomInput').value.trim().toUpperCase();
+            if (!code) return;
+            currentRoom = code;
+            socket.emit('joinRoom', code);
+        }
+
+        socket.on('errorMessage', (msg) => {
+            document.getElementById('status').innerText = 'Ошибка: ' + msg;
+        });
+
+        socket.on('nextQuestion', (data) => {
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('finalScreen').style.display = 'none';
+            document.getElementById('rematchWaiting').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+            showQuestion(data);
+        });
+
+        function showQuestion(data) {
+            hasAnswered = false;
+            const q = data.question;
+
+            document.getElementById('questionInfo').innerText = 
+                'Вопрос ' + data.questionNumber + ' из ' + data.totalQuestions;
+            document.getElementById('questionText').innerText = q.text;
+
+                        // Картинка
+            const img = document.getElementById('questionImage');
+            if (q.image) {
+                img.src = '/images/' + q.image;
+                img.style.display = 'block';
+            } else {
+                img.src = '';
+                img.style.display = 'none';
+            }
+
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            optionsDiv.classList.remove('disabled');
+
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.innerText = opt;
+                btn.dataset.index = index;
+                btn.onclick = () => submitAnswer(index);
+                optionsDiv.appendChild(btn);
+            });
+
+            let timeLeft = 15;
+            document.getElementById('timer').innerText = '⏱ Осталось: ' + timeLeft + ' сек';
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft >= 0) {
+                    document.getElementById('timer').innerText = '⏱ Осталось: ' + timeLeft + ' сек';
+                }
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    if (!hasAnswered) {
+                        soundTimeout();
+                        submitAnswer(-1);
+                    }
+                }
+            }, 1000);
+        }
+
+        function submitAnswer(index) {
+            if (hasAnswered) return;
+            hasAnswered = true;
+
+            const timeLeft = parseInt(
+                document.getElementById('timer').innerText.replace(/\D/g, '')
+            ) || 0;
+
+            clearInterval(timerInterval);
+            document.getElementById('timer').innerText = '⏳ Ждём соперника...';
+            document.getElementById('options').classList.add('disabled');
+
+            socket.emit('submitAnswer', {
+                roomCode: currentRoom,
+                answerIndex: index,
+                timeLeft: timeLeft
+            });
+        }
+
+        socket.on('yourAnswer', (data) => {
+            const buttons = document.querySelectorAll('#options button');
+            buttons.forEach((btn) => {
+                const idx = parseInt(btn.dataset.index);
+                if (idx === data.correctIndex) {
+                    btn.classList.add('correct');
+                } else if (idx === parseInt(btn.dataset.index) && !data.isCorrect) {
+                    // ничего — не подсвечиваем неправильный выбор игрока (по желанию можно)
+                }
+            });
+
+            if (data.isCorrect) {
+                soundCorrect();
+                document.getElementById('timer').innerText = '✅ Верно! Ждём соперника...';
+            } else {
+                soundWrong();
+                document.getElementById('timer').innerText = '❌ Неверно. Ждём соперника...';
+            }
+        });
+
+        socket.on('opponentAnswered', () => {
+            document.getElementById('questionInfo').innerText += ' (соперник уже ответил)';
+        });
+
+        socket.on('roundResult', (data) => {
+            clearInterval(timerInterval);
+
+            const buttons = document.querySelectorAll('#options button');
+            buttons.forEach((btn) => {
+                const idx = parseInt(btn.dataset.index);
+                if (idx === data.correctIndex) btn.classList.add('correct');
+            });
+
+            const myScore = data.scores[myId] || 0;
+            const opponentId = Object.keys(data.scores).find(id => id !== myId);
+            const opponentScore = data.scores[opponentId] || 0;
+
+            document.getElementById('timer').innerText =
+                '📊 Счёт — Вы: ' + myScore + ' | Соперник: ' + opponentScore;
+        });
+
+        // --- ФИНАЛЬНЫЕ ЭКРАНЫ ---
+        socket.on('youWon', (data) => showFinal('win', data));
+        socket.on('youLost', (data) => showFinal('lose', data));
+        socket.on('youTied', (data) => showFinal('tie', data));
+
+        function showFinal(type, data) {
+            clearInterval(timerInterval);
+
+            document.getElementById('game').style.display = 'none';
+            document.getElementById('rematchWaiting').style.display = 'none';
+            const screen = document.getElementById('finalScreen');
+            screen.style.display = 'block';
+
+            screen.classList.remove('win', 'lose', 'tie');
+            screen.classList.add(type);
+
+            const title = document.getElementById('finalTitle');
+            const score = document.getElementById('finalScore');
+            const message = document.getElementById('finalMessage');
+            const btn = document.getElementById('finalButton');
+
+            score.innerHTML =
+                'Ваш счёт: <b>' + data.myScore + '</b><br>' +
+                'Счёт соперника: <b>' + data.opponentScore + '</b>';
+
+            if (type === 'win') {
+                title.innerText = '🏆 ПОБЕДА!';
+                message.innerText = 'Отличная реакция! Вы знаете ПДД лучше соперника. 🚗💨';
+                btn.innerText = '🔄 Играть снова';
+                btn.style.background = '';
+                btn.style.color = '';
+                soundWin();
+            } else if (type === 'lose') {
+                title.innerText = '😢 ПОРАЖЕНИЕ';
+                message.innerText = 'Не расстраивайтесь! Возьмите реванш и покажите, на что вы способны.';
+                btn.innerText = '⚔️ РЕВАНШ!';
+                btn.style.background = '#dc3545';
+                btn.style.color = '#fff';
+                soundLose();
+            } else {
+                title.innerText = '🤝 НИЧЬЯ!';
+                message.innerText = 'Вы оба знаете ПДД на отлично!';
+                btn.innerText = '🔄 Играть снова';
+                btn.style.background = '';
+                btn.style.color = '';
+                soundTie();
+            }
+        }
+
+        // --- РЕВАНШ ---
+        function requestRematch() {
+            document.getElementById('finalScreen').style.display = 'none';
+            document.getElementById('rematchWaiting').style.display = 'block';
+            socket.emit('requestRematch', currentRoom);
+        }
+
+        function cancelRematch() {
+            iCanceledRematch = true;
+            socket.emit('cancelRematch', currentRoom);
+            goToMenu();
+        }
+
+        function goToMenu() {
+            document.getElementById('finalScreen').style.display = 'none';
+            document.getElementById('rematchWaiting').style.display = 'none';
+            document.getElementById('game').style.display = 'none';
+            document.getElementById('menu').style.display = 'block';
+            document.getElementById('status').innerText = 
+                'Создайте новую комнату или войдите в существующую.';
+            document.getElementById('roomInput').value = '';
+            currentRoom = '';
+        }
+
+        socket.on('rematchWaiting', () => {
+            const finalScreen = document.getElementById('finalScreen');
+            if (finalScreen.style.display !== 'none') {
+                document.getElementById('finalMessage').innerText += 
+                    ' (Соперник уже ждёт реванш!)';
+            }
+        });
+
+        socket.on('rematchStarting', () => {
+            document.getElementById('finalScreen').style.display = 'none';
+            document.getElementById('rematchWaiting').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+        });
+
+        socket.on('rematchCanceled', (msg) => {
+            if (iCanceledRematch) {
+                iCanceledRematch = false;
+                return;
+            }
+            alert(msg || 'Реванш отменён.');
+            goToMenu();
+        });
+    </script>
+
+</body>
+</html>
