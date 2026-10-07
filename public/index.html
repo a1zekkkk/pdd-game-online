@@ -711,26 +711,51 @@
         }
 
         socket.on('roomCreated', (code) => {
-            currentRoom = code;
-            const showCode = (copied) => {
-                document.getElementById('status').innerHTML =
-                    'Комната создана!<br>' +
-                    '<div class="room-code" id="roomCodeBox">' + code + '</div><br>' +
-                    (copied
-                        ? '<div class="copied-note">✅ Код скопирован</div>'
-                        : '<div class="copied-note" style="color:#dc2626;">⚠️ Скопируйте вручную</div>'
-                    ) +
-                    '<div class="waiting-note">Отправьте код другу. Ждём второго игрока…</div>';
-                document.getElementById('roomCodeBox').onclick = () => {
+    currentRoom = code;
+    const showCode = (copied) => {
+        document.getElementById('status').innerHTML =
+            'Комната создана!<br>' +
+            '<div class="room-code" id="roomCodeBox">' + code + '</div><br>' +
+            (copied
+                ? '<div class="copied-note">✅ Код скопирован</div>'
+                : '<div class="copied-note" style="color:#dc2626;">⚠️ Скопируйте код вручную</div>'
+            ) +
+            '<div class="waiting-note">Отправьте код другу. Ждём второго игрока…</div>';
+        document.getElementById('roomCodeBox').onclick = () => {
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(code).then(() => {
                         const box = document.getElementById('roomCodeBox');
                         box.style.background = '#86efac';
                         setTimeout(() => { box.style.background = ''; }, 400);
-                    });
-                };
-            };
-            navigator.clipboard.writeText(code).then(() => showCode(true)).catch(() => showCode(false));
-        });
+                    }).catch(() => {});
+                }
+            } catch (e) {
+                console.log('Clipboard error:', e);
+            }
+        };
+    };
+
+    // Сначала показываем код (вдруг clipboard не работает)
+    showCode(false);
+
+    // Потом пробуем скопировать
+    try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(code)
+                .then(() => {
+                    const note = document.querySelector('.copied-note');
+                    if (note) {
+                        note.innerHTML = '✅ Код скопирован';
+                        note.style.color = '#16a34a';
+                    }
+                })
+                .catch(() => { /* оставляем "скопируйте вручную" */ });
+        }
+    } catch (e) {
+        console.log('Clipboard error:', e);
+    }
+});
 
         function joinRoom() {
             ensureAudio();
