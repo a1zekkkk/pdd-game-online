@@ -101,6 +101,89 @@
             min-height: 24px;
         }
 
+                /* Экраны тренировки */
+        #trainingSelect, #trainingGame, #trainingResult {
+            display: none;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 18px;
+            padding: 24px 22px;
+            box-shadow: 0 8px 24px rgba(30, 58, 95, 0.08);
+        }
+
+        #ticketButtons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        #ticketButtons button {
+            margin: 0;
+            padding: 20px;
+            font-size: 18px;
+            background: #dbeafe;
+            color: #1e3a5f;
+            font-weight: 700;
+        }
+        #ticketButtons button:hover {
+            background: #bfdbfe;
+        }
+
+        .training-option {
+            display: block;
+            width: 100%;
+            padding: 16px 18px;
+            margin: 10px 0;
+            font-size: 17px;
+            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            border-radius: 12px;
+            background: #ffffff;
+            color: #1f2937;
+            box-shadow: 0 2px 6px rgba(30, 58, 95, 0.08);
+            transition: all 0.15s ease;
+            text-align: left;
+        }
+        .training-option:hover {
+            background: #f8fafc;
+            box-shadow: 0 4px 12px rgba(30, 58, 95, 0.12);
+        }
+        .training-option.correct {
+            background: #86efac !important;
+            color: #14532d !important;
+        }
+        .training-option.wrong {
+            background: #fca5a5 !important;
+            color: #7f1d1d !important;
+        }
+
+        .mistake-item {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 12px 14px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .mistake-item .m-question {
+            font-weight: 700;
+            color: #1e3a5f;
+            margin-bottom: 6px;
+        }
+        .mistake-item .m-your {
+            color: #dc2626;
+            margin-bottom: 2px;
+        }
+        .mistake-item .m-correct {
+            color: #16a34a;
+        }
+
+        @media (max-width: 480px) {
+            #ticketButtons { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            #ticketButtons button { padding: 16px; font-size: 16px; }
+        }
+
         #questionInfo { color: #64748b; font-size: 13px; font-weight: 600; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 8px; }
         #questionImage { display: none; width: 100%; max-width: 100%; max-height: 220px; object-fit: contain; border-radius: 12px; margin: 12px 0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
         #questionText { font-size: 19px; font-weight: 600; margin: 12px 0 20px; line-height: 1.4; color: #0f172a; }
@@ -362,6 +445,9 @@
         <hr style="border:none; border-top:1px solid #e2e8f0; margin: 14px 0;">
         <input id="roomInput" placeholder="Введите код комнаты" autocomplete="off" autocapitalize="characters" maxlength="6">
         <button onclick="joinRoom()">Войти в комнату</button>
+
+                <hr style="border:none; border-top:1px solid #e2e8f0; margin: 14px 0;">
+        <button onclick="startTraining()" style="background:#22c55e; color:#fff;">🎯 Тренировка</button>
         <p id="status"></p>
 
         <!-- Статистика -->
@@ -401,6 +487,36 @@
         </div>
         <div class="ta-subtitle" id="taSubtitle"></div>
     </div>
+
+        <!-- ЭКРАН ВЫБОРА БИЛЕТА ДЛЯ ТРЕНИРОВКИ -->
+    <div id="trainingSelect">
+        <h2 style="text-align: center; color: #1e3a5f; margin: 0 0 8px;">🎯 Тренировка</h2>
+        <p style="text-align: center; color: #64748b; margin: 0 0 20px;">Выберите билет</p>
+        <div id="ticketButtons"></div>
+        <button onclick="goToMenu()" style="background:#94a3b8; color:#fff; margin-top: 20px;">↩️ В меню</button>
+    </div>
+
+    <!-- ЭКРАН ТРЕНИРОВКИ -->
+    <div id="trainingGame">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span id="trainingInfo" style="color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"></span>
+            <span id="trainingProgress" style="color: #64748b; font-size: 13px; font-weight: 600;"></span>
+        </div>
+        <img id="trainingImage" src="" alt="" style="display:none; width: 100%; max-width: 100%; max-height: 220px; object-fit: contain; border-radius: 12px; margin: 12px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <p id="trainingQuestion" style="font-size: 19px; font-weight: 600; margin: 12px 0 20px; line-height: 1.4; color: #0f172a;"></p>
+        <div id="trainingOptions"></div>
+        <button onclick="cancelTraining()" style="background:#94a3b8; color:#fff; margin-top: 20px;">↩️ Прервать тренировку</button>
+    </div>
+
+    <!-- ЭКРАН РЕЗУЛЬТАТА ТРЕНИРОВКИ -->
+    <div id="trainingResult">
+        <h2 id="trainingResultTitle" style="text-align: center; font-size: 32px; margin: 0 0 16px;">Результат</h2>
+        <div id="trainingResultScore" style="text-align: center; font-size: 22px; font-weight: 700; color: #1e3a5f; margin-bottom: 20px;"></div>
+        <div id="trainingMistakes" style="margin-bottom: 20px;"></div>
+        <button onclick="startTraining()" style="background:#22c55e; color:#fff;">🎯 Выбрать другой билет</button>
+        <button onclick="goToMenu()" style="background:#94a3b8; color:#fff;">↩️ В меню</button>
+    </div>
+
     <div id="game">
         <div class="players-bar">
             <div class="player-slot">
@@ -989,6 +1105,196 @@
                 '📊 ' + myName + ': ' + myScore + ' | ' + oppName + ': ' + opponentScore;
             document.getElementById('timer').style.color = '#1e3a5f';
         });
+
+                // ============================================
+        // РЕЖИМ ТРЕНИРОВКИ
+        // ============================================
+        let trainingQuestions = [];
+        let trainingCurrentIndex = 0;
+        let trainingCorrectCount = 0;
+        let trainingMistakes = [];
+        let trainingAllQuestions = [];
+
+        // Загружаем все вопросы один раз
+        async function loadAllQuestions() {
+            if (trainingAllQuestions.length > 0) return trainingAllQuestions;
+            try {
+                const response = await fetch('/questions.json');
+                trainingAllQuestions = await response.json();
+                return trainingAllQuestions;
+            } catch (e) {
+                console.error('Не удалось загрузить вопросы:', e);
+                return [];
+            }
+        }
+
+        // Открыть экран выбора билета
+        async function startTraining() {
+            const allQuestions = await loadAllQuestions();
+
+            // Определяем, какие билеты есть
+            const ticketNumbers = [...new Set(allQuestions.map(q => q.ticket))].sort((a, b) => a - b);
+
+            // Скрываем все экраны
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('game').style.display = 'none';
+            document.getElementById('finalScreen').style.display = 'none';
+            document.getElementById('rematchWaiting').style.display = 'none';
+            document.getElementById('ticketAnimation').style.display = 'none';
+            document.getElementById('trainingGame').style.display = 'none';
+            document.getElementById('trainingResult').style.display = 'none';
+            document.getElementById('trainingSelect').style.display = 'block';
+
+            // Заполняем кнопки билетов
+            const buttonsContainer = document.getElementById('ticketButtons');
+            buttonsContainer.innerHTML = '';
+            ticketNumbers.forEach(num => {
+                const btn = document.createElement('button');
+                btn.innerText = 'Билет ' + num;
+                btn.onclick = () => startTrainingWithTicket(num);
+                buttonsContainer.appendChild(btn);
+            });
+        }
+
+        // Начать тренировку по выбранному билету
+        async function startTrainingWithTicket(ticketNumber) {
+            const allQuestions = await loadAllQuestions();
+            // Берём вопросы ЭТОГО билета, СОРТИРУЕМ ПО НОМЕРУ (без рандома!)
+            trainingQuestions = allQuestions
+                .filter(q => q.ticket === ticketNumber)
+                .sort((a, b) => a.number - b.number);
+            trainingCurrentIndex = 0;
+            trainingCorrectCount = 0;
+            trainingMistakes = [];
+
+            // Показываем экран тренировки
+            document.getElementById('trainingSelect').style.display = 'none';
+            document.getElementById('trainingGame').style.display = 'block';
+
+            showTrainingQuestion();
+        }
+
+        // Показать текущий вопрос тренировки
+        function showTrainingQuestion() {
+            if (trainingCurrentIndex >= trainingQuestions.length) {
+                showTrainingResult();
+                return;
+            }
+
+            const q = trainingQuestions[trainingCurrentIndex];
+
+            document.getElementById('trainingInfo').innerText = 'Билет ' + q.ticket;
+            document.getElementById('trainingProgress').innerText = 'Вопрос ' + (trainingCurrentIndex + 1) + ' из ' + trainingQuestions.length;
+            document.getElementById('trainingQuestion').innerText = q.text;
+
+            // Картинка
+            const img = document.getElementById('trainingImage');
+            if (q.image) {
+                img.src = '/images/' + q.image;
+                img.style.display = 'block';
+            } else {
+                img.src = '';
+                img.style.display = 'none';
+            }
+
+            // Варианты ответов
+            const optionsDiv = document.getElementById('trainingOptions');
+            optionsDiv.innerHTML = '';
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'training-option';
+                btn.innerText = opt;
+                btn.onclick = () => submitTrainingAnswer(index);
+                optionsDiv.appendChild(btn);
+            });
+        }
+
+        // Ответ на вопрос тренировки
+        function submitTrainingAnswer(answerIndex) {
+            const q = trainingQuestions[trainingCurrentIndex];
+            const isCorrect = answerIndex === q.correct;
+
+            // Блокируем варианты
+            const buttons = document.querySelectorAll('#trainingOptions .training-option');
+            buttons.forEach((btn, idx) => {
+                btn.disabled = true;
+                if (idx === q.correct) {
+                    btn.classList.add('correct');
+                } else if (idx === answerIndex && !isCorrect) {
+                    btn.classList.add('wrong');
+                }
+            });
+
+            if (isCorrect) {
+                trainingCorrectCount++;
+                soundCorrect();
+            } else {
+                soundWrong();
+                // Сохраняем ошибку для разбора
+                trainingMistakes.push({
+                    text: q.text,
+                    yourAnswer: q.options[answerIndex],
+                    correctAnswer: q.options[q.correct]
+                });
+            }
+
+            // Через 1.5 секунды — следующий вопрос
+            setTimeout(() => {
+                trainingCurrentIndex++;
+                showTrainingQuestion();
+            }, 1500);
+        }
+
+        // Экран результата
+        function showTrainingResult() {
+            document.getElementById('menu').style.display = 'none'; 
+            document.getElementById('trainingGame').style.display = 'none';
+            document.getElementById('trainingResult').style.display = 'block';
+
+            const total = trainingQuestions.length;
+            const percent = Math.round((trainingCorrectCount / total) * 100);
+
+            // Заголовок в зависимости от результата
+            let title = '📊 Результат';
+            if (percent === 100) title = '🏆 ИДЕАЛЬНО!';
+            else if (percent >= 80) title = '🎉 Отлично!';
+            else if (percent >= 60) title = '👍 Хорошо!';
+            else title = '📚 Нужно повторить';
+
+            document.getElementById('trainingResultTitle').innerText = title;
+            document.getElementById('trainingResultScore').innerHTML =
+                'Правильных: <b>' + trainingCorrectCount + '</b> из <b>' + total + '</b> (' + percent + '%)';
+
+            // Разбор ошибок
+            const mistakesDiv = document.getElementById('trainingMistakes');
+            if (trainingMistakes.length === 0) {
+                mistakesDiv.innerHTML = '<div style="text-align:center; color:#16a34a; font-weight:600; padding:20px;">✨ Ни одной ошибки! Так держать!</div>';
+            } else {
+                let html = '<h4 style="color:#1e3a5f; margin: 0 0 12px;">Ошибки (' + trainingMistakes.length + '):</h4>';
+                trainingMistakes.forEach(m => {
+                    html += '<div class="mistake-item">' +
+                        '<div class="m-question">' + m.text + '</div>' +
+                        '<div class="m-your">❌ Ваш ответ: ' + m.yourAnswer + '</div>' +
+                        '<div class="m-correct">✅ Правильно: ' + m.correctAnswer + '</div>' +
+                        '</div>';
+                });
+                mistakesDiv.innerHTML = html;
+            }
+
+            // Звук
+            if (percent >= 80) soundWin();
+            else if (percent >= 60) soundTie();
+            else soundLose();
+        }
+
+        // Прервать тренировку
+        function cancelTraining() {
+            trainingQuestions = [];
+            trainingCurrentIndex = 0;
+            trainingCorrectCount = 0;
+            trainingMistakes = [];
+            goToMenu();
+        }
 
         socket.on('youWon', (data) => {
             const info = updateStatsAfterMatch('win');
