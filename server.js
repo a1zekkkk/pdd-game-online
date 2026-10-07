@@ -21,6 +21,7 @@ io.on('connection', (socket) => {
         const roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
         const name = (playerName || 'Игрок').slice(0, 20);
         const avatar = avatarId || 1;
+        const ticketData = pickRandomTicket(questions);
 
         rooms[roomCode] = {
             players: [socket.id],
@@ -28,7 +29,8 @@ io.on('connection', (socket) => {
             avatars: { [socket.id]: avatar },
             currentQuestionIndex: 0,
             scores: { [socket.id]: 0 },
-            gameQuestions: pickRandomTicket(questions),
+            gameQuestions: ticketData.questions,
+            currentTicket: ticketData.ticketNumber,
             answers: {},
             rematchVotes: {},
             rematchTimer: null
@@ -36,7 +38,7 @@ io.on('connection', (socket) => {
 
         socket.join(roomCode);
         socket.emit('roomCreated', roomCode);
-        console.log('Создана комната:', roomCode, 'Игрок:', name, 'Аватар:', avatar);
+        console.log('Создана комната:', roomCode, 'Игрок:', name, 'Билет:', ticketData.ticketNumber);
     });
 
     // --- ПОДКЛЮЧЕНИЕ К КОМНАТЕ ---
@@ -61,16 +63,21 @@ io.on('connection', (socket) => {
         room.scores[socket.id] = 0;
         socket.join(roomCode);
 
-        console.log('Игрок вошёл:', roomCode, 'Имя:', name, 'Аватар:', avatar);
+        console.log('Игрок вошёл:', roomCode, 'Имя:', name, 'Билет:', room.currentTicket);
 
-        // Отправляем обоим информацию об игроках
         io.to(roomCode).emit('playersInfo', {
             names: room.names,
             avatars: room.avatars,
             players: room.players
         });
 
-        startNewRound(roomCode);
+        // Показываем анимацию выбора билета
+        io.to(roomCode).emit('ticketChosen', { ticketNumber: room.currentTicket });
+
+        // Через 3 секунды — старт первого вопроса
+        setTimeout(() => {
+            startNewRound(roomCode);
+        }, 3200);
     });
 
     // --- ОТВЕТ НА ВОПРОС ---
@@ -95,7 +102,6 @@ io.on('connection', (socket) => {
             correctIndex: currentQuestion.correct
         });
 
-        // Сообщаем сопернику: этот игрок ответил + его результат (для реакции)
         socket.to(roomCode).emit('opponentAnswered', { isCorrect });
 
         if (Object.keys(room.answers).length === room.players.length) {
@@ -216,12 +222,19 @@ function startRematch(roomCode) {
     room.rematchTimer = null;
 
     room.players.forEach(id => { room.scores[id] = 0; });
-    room.gameQuestions = pickRandomTicket(questions);
 
+    const ticketData = pickRandomTicket(questions);
+    room.gameQuestions = ticketData.questions;
+    room.currentTicket = ticketData.ticketNumber;
+
+    // Показываем анимацию выбора билета
     io.to(roomCode).emit('rematchStarting');
 
     setTimeout(() => {
-        startNewRound(roomCode);
+        io.to(roomCode).emit('ticketChosen', { ticketNumber: room.currentTicket });
+        setTimeout(() => {
+            startNewRound(roomCode);
+        }, 3200);
     }, 500);
 }
 
@@ -235,10 +248,16 @@ function cleanupRoom(roomCode) {
     delete rooms[roomCode];
 }
 
+// Возвращает { questions: [...], ticketNumber: N }
 function pickRandomTicket(allQuestions) {
     const ticketNumbers = [...new Set(allQuestions.map(q => q.ticket))];
     const randomTicket = ticketNumbers[Math.floor(Math.random() * ticketNumbers.length)];
-    return allQuestions.filter(q => q.ticket === randomTicket);
+    const ticketQuestions = allQuestions.filter(q => q.ticket === randomTicket);
+    const shuffled = [...ticketQuestions].sort(() => 0.5 - Math.random());
+    return {
+        questions: shuffled.slice(0, Math.min(10, shuffled.length)),
+        ticketNumber: randomTicket
+    };
 }
 
 server.listen(process.env.PORT || 3000, '0.0.0.0', () => {

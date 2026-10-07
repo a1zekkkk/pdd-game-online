@@ -21,7 +21,7 @@
             max-width: 640px;
             margin: 0 auto;
         }
-        h1 { text-align: center; font-weight: 700; font-size: 28px; margin: 0 0 24px; color: #1e3a5f; }
+        h1 { text-align: center; font-weight: 700; font-size: 28px; margin: 0 0 20px; color: #1e3a5f; }
         button {
             display: block; width: 100%; padding: 16px 18px; margin: 10px 0;
             font-size: 17px; font-family: inherit; font-weight: 600;
@@ -39,36 +39,78 @@
             background: #ffffff; transition: border-color 0.15s ease; min-height: 56px;
         }
         input:focus { outline: none; border-color: #3b82f6; }
-        #menu { background: rgba(255, 255, 255, 0.75); padding: 28px 22px; border-radius: 18px; box-shadow: 0 8px 24px rgba(30, 58, 95, 0.08); backdrop-filter: blur(10px); }
+        #menu { background: rgba(255, 255, 255, 0.75); padding: 24px 22px; border-radius: 18px; box-shadow: 0 8px 24px rgba(30, 58, 95, 0.08); backdrop-filter: blur(10px); }
         #game { display: none; background: rgba(255, 255, 255, 0.88); padding: 22px 18px; border-radius: 18px; box-shadow: 0 8px 24px rgba(30, 58, 95, 0.08); }
+
+        /* Экран анимации билета */
+        #ticketAnimation {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 18px;
+            box-shadow: 0 8px 24px rgba(30, 58, 95, 0.08);
+        }
+        #ticketAnimation .ta-label {
+            font-size: 14px;
+            font-weight: 700;
+            color: #64748b;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+        #ticketAnimation .ta-window {
+            width: 160px;
+            height: 120px;
+            margin: 0 auto;
+            background: #1e3a5f;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 8px 24px rgba(30, 58, 95, 0.3);
+            border: 3px solid #3b82f6;
+        }
+        #ticketAnimation .ta-strip {
+            display: flex;
+            flex-direction: column;
+            transition: none;
+        }
+        #ticketAnimation .ta-number {
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            font-weight: 700;
+            color: #fff;
+        }
+        #ticketAnimation .ta-window.final {
+            border-color: #22c55e;
+            box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.2), 0 8px 24px rgba(34, 197, 94, 0.4);
+            animation: taFinalPulse 0.5s ease-out;
+        }
+        @keyframes taFinalPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        #ticketAnimation .ta-subtitle {
+            margin-top: 24px;
+            font-size: 16px;
+            color: #64748b;
+            min-height: 24px;
+        }
+
+        #questionInfo { color: #64748b; ... }
+        #questionImage { display: none; ... }
         #questionInfo { color: #64748b; font-size: 13px; font-weight: 600; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 8px; }
         #questionImage { display: none; width: 100%; max-width: 100%; max-height: 220px; object-fit: contain; border-radius: 12px; margin: 12px 0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
         #questionText { font-size: 19px; font-weight: 600; margin: 12px 0 20px; line-height: 1.4; color: #0f172a; }
-
-        /* Прогресс-бар времени */
-        #timeBarWrap {
-            width: 100%;
-            height: 10px;
-            background: #e2e8f0;
-            border-radius: 6px;
-            margin: 16px 0 8px;
-            overflow: hidden;
-        }
-        #timeBar {
-            height: 100%;
-            width: 100%;
-            background: #22c55e;
-            border-radius: 6px;
-            transition: width 1s linear, background-color 0.3s ease;
-        }
-
+        #timeBarWrap { width: 100%; height: 10px; background: #e2e8f0; border-radius: 6px; margin: 16px 0 8px; overflow: hidden; }
+        #timeBar { height: 100%; width: 100%; background: #22c55e; border-radius: 6px; transition: width 1s linear, background-color 0.3s ease; }
         #timer { font-weight: 700; color: #22c55e; text-align: center; font-size: 18px; margin-top: 4px; min-height: 26px; transition: color 0.3s ease; }
         #timer.pulse { animation: timerPulse 0.6s ease-in-out infinite; }
-        @keyframes timerPulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.15); opacity: 0.7; }
-        }
-
+        @keyframes timerPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.15); opacity: 0.7; } }
         .correct { background: #86efac !important; color: #14532d !important; }
         .wrong { background: #fca5a5 !important; color: #7f1d1d !important; }
         .disabled { opacity: 0.6; pointer-events: none; }
@@ -76,6 +118,9 @@
         #finalScreen h2 { font-size: 38px; margin: 8px 0; font-weight: 700; }
         #finalScreen .score { font-size: 19px; margin: 18px 0; line-height: 1.7; }
         #finalScreen .message { font-size: 16px; font-style: italic; margin: 18px 0; opacity: 0.85; }
+        #finalScreen .streak-info { font-size: 15px; font-weight: 600; margin: 12px 0; padding: 10px 14px; border-radius: 10px; background: rgba(255,255,255,0.5); }
+        #finalScreen .streak-bonus { color: #d97706; font-weight: 700; }
+        #finalScreen .streak-lost { color: #dc2626; }
         #finalScreen button { max-width: 340px; margin: 10px auto 0; font-size: 17px; padding: 18px; }
         .win { background: #d4edda; border: 3px solid #28a745; }
         .lose { background: #f8d7da; border: 3px solid #dc3545; }
@@ -91,36 +136,193 @@
         .copied-note { color: #16a34a; font-size: 14px; font-weight: 600; margin-top: 4px; }
         .waiting-note { color: #64748b; font-size: 14px; margin-top: 6px; }
 
-        /* Сетка аватарок */
-        .avatar-label { display: block; font-size: 14px; font-weight: 600; color: #475569; margin: 8px 0 6px; }
-        .avatar-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px; }
-        .avatar-option { cursor: pointer; border-radius: 10px; padding: 4px; background: #f1f5f9; border: 2px solid transparent; transition: 0.15s; display: flex; align-items: center; justify-content: center; aspect-ratio: 1 / 1; }
-        .avatar-option:hover { background: #e2e8f0; transform: scale(1.05); }
-        .avatar-option.selected { border-color: #3b82f6; background: #dbeafe; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
-        .avatar-option img { width: 100%; height: 100%; object-fit: contain; border-radius: 6px; }
+        /* Шапка меню: аватарка + имя */
+        .player-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: #f1f5f9;
+            border-radius: 14px;
+        }
+        .player-header .avatar-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: #fff;
+            padding: 3px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.15s;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .player-header .avatar-btn:hover { border-color: #3b82f6; }
+        .player-header .avatar-btn::after {
+            content: '✎';
+            position: absolute;
+            bottom: -4px;
+            right: -4px;
+            background: #3b82f6;
+            color: #fff;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
+        }
+        .player-header .avatar-btn img { width: 100%; height: 100%; object-fit: contain; border-radius: 9px; }
+        .player-header .name-input-wrap { flex: 1; min-width: 0; }
+        .player-header .name-input-wrap input { margin: 0; }
 
-        /* Плашка с игроками */
-        .players-bar {
+        /* Модальное окно */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: #fff;
+            border-radius: 18px;
+            padding: 24px 22px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content h3 { margin: 0 0 16px; font-size: 20px; color: #1e3a5f; text-align: center; }
+        .modal-content .avatar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
+        .modal-content .avatar-option {
+            cursor: pointer; border-radius: 12px; padding: 6px;
+            background: #f1f5f9; border: 2px solid transparent;
+            transition: 0.15s; aspect-ratio: 1 / 1;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .modal-content .avatar-option:hover { background: #e2e8f0; transform: scale(1.05); }
+        .modal-content .avatar-option.selected { border-color: #3b82f6; background: #dbeafe; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+        .modal-content .avatar-option img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; }
+
+        /* Статистика */
+        .stats-block {
+            background: #f8fafc;
+            border-radius: 14px;
+            padding: 16px 18px;
+            margin-bottom: 16px;
+            border: 1px solid #e2e8f0;
+        }
+        .stats-block h4 {
+            margin: 0 0 12px;
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 15px;
+            padding: 4px 0;
+            color: #1f2937;
+        }
+        .stats-row b { color: #1e3a5f; }
+        .streak-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 15px;
+            padding: 6px 0;
+            border-top: 1px dashed #e2e8f0;
+            margin-top: 6px;
+        }
+        .streak-fire { color: #dc2626; font-weight: 700; }
+        .streak-best { color: #d97706; font-weight: 700; }
+        .level-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .level-novice   { background: #94a3b8; }
+        .level-amateur  { background: #22c55e; }
+        .level-skilled  { background: #3b82f6; }
+        .level-expert   { background: #a855f7; }
+        .level-master   { background: #f59e0b; }
+
+        /* История матчей */
+        .history-block {
+            background: #f8fafc;
+            border-radius: 14px;
+            padding: 16px 18px;
+            margin-bottom: 16px;
+            border: 1px solid #e2e8f0;
+        }
+        .history-block h4 {
+            margin: 0 0 12px;
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .history-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #f1f5f9;
-            border-radius: 12px;
-            padding: 10px 14px;
-            margin-bottom: 16px;
-            position: relative;
+            padding: 8px 0;
+            font-size: 14px;
+            border-bottom: 1px solid #e2e8f0;
+            gap: 8px;
         }
-        .player-slot { display: flex; align-items: center; gap: 8px; min-width: 0; overflow: hidden; max-width: 45%; }
-        .player-slot.right { justify-content: flex-end; flex-direction: row-reverse; }
-        .player-slot img { width: 48px; height: 48px; object-fit: contain; border-radius: 8px; background: #fff; padding: 2px; flex-shrink: 0; transition: transform 0.2s ease; }
-        .player-slot img.reacting { transform: scale(1.15); }
-        .player-slot .player-name { font-size: 15px; font-weight: 600; color: #1e3a5f; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .vs-separator { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 13px; font-weight: 700; color: #94a3b8; pointer-events: none; }
+        .history-item:last-child { border-bottom: none; }
+        .history-item .h-players { color: #1f2937; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .history-item .h-score { font-weight: 700; color: #1e3a5f; flex-shrink: 0; }
+        .history-item .h-result {
+            width: 22px; height: 22px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; color: #fff; flex-shrink: 0;
+        }
+        .h-result.win  { background: #22c55e; }
+        .h-result.lose { background: #ef4444; }
+        .h-result.tie  { background: #f59e0b; }
+        .history-empty { color: #94a3b8; font-size: 14px; text-align: center; padding: 8px 0; }
+
+        /* Кнопка сброса */
+        .reset-link {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 12px;
+            margin: 8px 0 0;
+            font-family: inherit;
+            text-decoration: underline;
+            box-shadow: none;
+            min-height: auto;
+        }
+        .reset-link:hover { color: #64748b; background: none; box-shadow: none; transform: none; }
 
         @media (max-width: 480px) {
             body { padding: 12px 12px 30px; }
-            h1 { font-size: 24px; margin-bottom: 18px; }
-            #menu { padding: 22px 16px; border-radius: 14px; }
+            h1 { font-size: 24px; margin-bottom: 16px; }
+            #menu { padding: 18px 16px; border-radius: 14px; }
             #game { padding: 18px 14px; border-radius: 14px; }
             button { padding: 16px; font-size: 16px; margin: 8px 0; }
             input { padding: 15px 16px; font-size: 16px; }
@@ -129,28 +331,78 @@
             #finalScreen h2 { font-size: 32px; }
             #finalScreen .score { font-size: 17px; }
             .room-code { font-size: 26px; padding: 10px 18px; letter-spacing: 3px; }
-            .avatar-grid { grid-template-columns: repeat(5, 1fr); gap: 6px; }
-            .player-slot img { width: 40px; height: 40px; }
-            .player-slot .player-name { font-size: 14px; }
+            .player-header .avatar-btn { width: 52px; height: 52px; }
+            .modal-content .avatar-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+            .stats-row { font-size: 14px; }
         }
+
+        /* Плашка с игроками в игре */
+        .players-bar { display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; border-radius: 12px; padding: 10px 14px; margin-bottom: 16px; position: relative; }
+        .player-slot { display: flex; align-items: center; gap: 8px; min-width: 0; overflow: hidden; max-width: 45%; }
+        .player-slot.right { justify-content: flex-end; flex-direction: row-reverse; }
+        .player-slot img { width: 48px; height: 48px; object-fit: contain; border-radius: 8px; background: #fff; padding: 2px; flex-shrink: 0; transition: transform 0.2s ease; }
+        .player-slot img.reacting { transform: scale(1.15); }
+        .player-slot .player-name { font-size: 15px; font-weight: 600; color: #1e3a5f; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vs-separator { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 13px; font-weight: 700; color: #94a3b8; pointer-events: none; }
     </style>
 </head>
 <body>
 
     <div id="menu">
         <h1>🚗 ПДД Дуэль</h1>
-        <input id="playerName" placeholder="Ваше имя" maxlength="20" autocomplete="off">
 
-        <label class="avatar-label">Выберите аватарку:</label>
-        <div class="avatar-grid" id="avatarGrid"></div>
+        <div class="player-header">
+            <div class="avatar-btn" onclick="openAvatarModal()">
+                <img id="headerAvatar" src="/avatars/p1_normal.png" alt="Аватар">
+            </div>
+            <div class="name-input-wrap">
+                <input id="playerName" placeholder="Ваше имя" maxlength="20" autocomplete="off">
+            </div>
+        </div>
 
         <button onclick="createRoom()">Создать комнату</button>
-        <hr style="border:none; border-top:1px solid #e2e8f0; margin: 18px 0;">
+        <hr style="border:none; border-top:1px solid #e2e8f0; margin: 14px 0;">
         <input id="roomInput" placeholder="Введите код комнаты" autocomplete="off" autocapitalize="characters" maxlength="6">
         <button onclick="joinRoom()">Войти в комнату</button>
         <p id="status"></p>
-    </div>
 
+        <!-- Статистика -->
+        <div class="stats-block">
+            <h4>📊 Моя статистика</h4>
+            <div class="stats-row"><span>Матчей</span><b id="statTotal">0</b></div>
+            <div class="stats-row"><span>Победы / Поражения / Ничьи</span><b><span id="statWins">0</span> / <span id="statLosses">0</span> / <span id="statTies">0</span></b></div>
+            <div class="stats-row"><span>Очки</span><b id="statRating">0</b></div>
+            <div class="stats-row" style="margin-top: 8px;">
+                <span>Уровень</span>
+                <span id="statLevel" class="level-badge level-novice">Новичок</span>
+            </div>
+            <div class="streak-row">
+                <span>🔥 Текущая серия</span>
+                <span class="streak-fire"><span id="statStreak">0</span> побед</span>
+            </div>
+            <div class="streak-row">
+                <span>⭐ Лучшая серия</span>
+                <span class="streak-best"><span id="statBest">0</span> побед</span>
+            </div>
+        </div>
+
+        <!-- История матчей -->
+        <div class="history-block">
+            <h4>📜 Последние матчи</h4>
+            <div id="historyList"><div class="history-empty">Пока нет матчей</div></div>
+        </div>
+
+        <button class="reset-link" onclick="openResetModal()">Сбросить статистику</button>
+    </div>
+    <div id="ticketAnimation">
+        <div class="ta-label">Билет</div>
+        <div class="ta-window" id="taWindow">
+            <div class="ta-strip" id="taStrip">
+                <div class="ta-number">?</div>
+            </div>
+        </div>
+        <div class="ta-subtitle" id="taSubtitle"></div>
+    </div>
     <div id="game">
         <div class="players-bar">
             <div class="player-slot">
@@ -174,6 +426,7 @@
     <div id="finalScreen">
         <h2 id="finalTitle"></h2>
         <div class="score" id="finalScore"></div>
+        <div class="streak-info" id="streakInfo" style="display:none;"></div>
         <div class="message" id="finalMessage"></div>
         <button id="finalButton" onclick="requestRematch()">🔄 Играть снова</button>
         <button onclick="cancelRematch()" style="background:#94a3b8; color:#fff;">↩️ В меню</button>
@@ -185,6 +438,25 @@
         <p>Соперник ещё не нажал «Реванш».</p>
         <p><small style="color:#94a3b8;">Если он не ответит в течение 30 секунд — вернётесь в меню.</small></p>
         <button onclick="cancelRematch()" style="background:#94a3b8; color:#fff; max-width:300px; margin:20px auto 0;">↩️ Отменить и в меню</button>
+    </div>
+
+    <div class="modal-overlay" id="avatarModal">
+        <div class="modal-content">
+            <h3>Выберите аватарку</h3>
+            <div class="avatar-grid" id="avatarGrid"></div>
+            <button onclick="closeAvatarModal()" style="background:#94a3b8; color:#fff;">Закрыть</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="resetModal">
+        <div class="modal-content">
+            <h3>Сбросить статистику?</h3>
+            <p style="text-align: center; color: #64748b; margin: 12px 0 20px;">
+                Вся история матчей, очки, серии и уровень будут <b>удалены</b>. Это действие нельзя отменить.
+            </p>
+            <button onclick="confirmReset()" style="background: #dc3545; color: #fff;">Да, сбросить</button>
+            <button onclick="closeResetModal()" style="background: #94a3b8; color: #fff;">Отмена</button>
+        </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -219,6 +491,147 @@
         function soundWin() { playTone(523, 0.15, 'sine', 0.15, 0); playTone(659, 0.15, 'sine', 0.15, 0.15); playTone(784, 0.15, 'sine', 0.15, 0.30); playTone(1047, 0.40, 'sine', 0.18, 0.45); }
         function soundLose() { playTone(440, 0.20, 'sine', 0.13, 0); playTone(330, 0.20, 'sine', 0.13, 0.20); playTone(262, 0.45, 'sine', 0.13, 0.40); }
         function soundTie() { playTone(440, 0.20, 'sine', 0.13, 0); playTone(440, 0.20, 'sine', 0.13, 0.22); }
+        function soundStreakBonus() {
+            playTone(660, 0.10, 'sine', 0.15, 0);
+            playTone(880, 0.10, 'sine', 0.15, 0.10);
+            playTone(1320, 0.25, 'sine', 0.18, 0.20);
+        }
+
+        // СТАТИСТИКА (localStorage)
+        const STATS_KEY = 'pdd_stats_v1';
+        const HISTORY_KEY = 'pdd_history_v1';
+        const HISTORY_LIMIT = 10;
+
+        const STREAK_BONUSES = { 3: 3, 5: 5, 10: 10 };
+
+        function loadStats() {
+            try {
+                const raw = localStorage.getItem(STATS_KEY);
+                if (!raw) return { wins: 0, losses: 0, ties: 0, rating: 0, currentStreak: 0, bestStreak: 0 };
+                const parsed = JSON.parse(raw);
+                if (parsed.currentStreak === undefined) parsed.currentStreak = 0;
+                if (parsed.bestStreak === undefined) parsed.bestStreak = 0;
+                return parsed;
+            } catch (e) {
+                return { wins: 0, losses: 0, ties: 0, rating: 0, currentStreak: 0, bestStreak: 0 };
+            }
+        }
+        function saveStats(s) { localStorage.setItem(STATS_KEY, JSON.stringify(s)); }
+        function loadHistory() {
+            try {
+                const raw = localStorage.getItem(HISTORY_KEY);
+                if (!raw) return [];
+                return JSON.parse(raw);
+            } catch (e) { return []; }
+        }
+        function saveHistory(h) { localStorage.setItem(HISTORY_KEY, JSON.stringify(h)); }
+
+        function getLevel(rating) {
+            if (rating >= 1000) return { name: 'Мастер',    cls: 'level-master' };
+            if (rating >= 600)  return { name: 'Эксперт',   cls: 'level-expert' };
+            if (rating >= 300)  return { name: 'Опытный',   cls: 'level-skilled' };
+            if (rating >= 100)  return { name: 'Любитель',  cls: 'level-amateur' };
+            return { name: 'Новичок', cls: 'level-novice' };
+        }
+
+        function renderStats() {
+            const s = loadStats();
+            const total = s.wins + s.losses + s.ties;
+            document.getElementById('statTotal').innerText = total;
+            document.getElementById('statWins').innerText = s.wins;
+            document.getElementById('statLosses').innerText = s.losses;
+            document.getElementById('statTies').innerText = s.ties;
+            document.getElementById('statRating').innerText = s.rating;
+            document.getElementById('statStreak').innerText = s.currentStreak || 0;
+            document.getElementById('statBest').innerText = s.bestStreak || 0;
+            const lvl = getLevel(s.rating);
+            const el = document.getElementById('statLevel');
+            el.innerText = lvl.name;
+            el.className = 'level-badge ' + lvl.cls;
+        }
+
+        function renderHistory() {
+            const h = loadHistory();
+            const list = document.getElementById('historyList');
+            if (!h.length) {
+                list.innerHTML = '<div class="history-empty">Пока нет матчей</div>';
+                return;
+            }
+            list.innerHTML = '';
+            h.slice(0, HISTORY_LIMIT).forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'history-item';
+                let resultClass = 'tie', resultChar = '=';
+                if (item.result === 'win')  { resultClass = 'win';  resultChar = '✓'; }
+                if (item.result === 'lose') { resultClass = 'lose'; resultChar = '✗'; }
+                row.innerHTML =
+                    '<span class="h-players">' + item.myName + ' vs ' + item.oppName + '</span>' +
+                    '<span class="h-score">' + item.myScore + ' : ' + item.oppScore + '</span>' +
+                    '<span class="h-result ' + resultClass + '">' + resultChar + '</span>';
+                list.appendChild(row);
+            });
+        }
+
+        function addMatchToHistory(result, myName, oppName, myScore, oppScore) {
+            const h = loadHistory();
+            h.unshift({ result, myName, oppName, myScore, oppScore, ts: Date.now() });
+            saveHistory(h.slice(0, 50));
+            renderHistory();
+        }
+
+        // Возвращает объект с информацией о бонусе
+        function updateStatsAfterMatch(result) {
+            const s = loadStats();
+            let bonus = 0;
+            let bonusText = '';
+            let streakLost = 0;
+
+            if (result === 'win') {
+                s.wins += 1;
+                s.currentStreak = (s.currentStreak || 0) + 1;
+                bonus = STREAK_BONUSES[s.currentStreak] || 0;
+                if (bonus) bonusText = '+' + bonus + ' за серию ' + s.currentStreak + '!';
+                s.rating += 7 + bonus;
+                if (s.currentStreak > (s.bestStreak || 0)) {
+                    s.bestStreak = s.currentStreak;
+                }
+            } else if (result === 'lose') {
+                s.losses += 1;
+                streakLost = s.currentStreak || 0;
+                s.currentStreak = 0;
+                s.rating -= 5;
+                if (s.rating < 0) s.rating = 0;
+            } else if (result === 'tie') {
+                s.ties += 1;
+                streakLost = s.currentStreak || 0;
+                s.currentStreak = 0;
+                s.rating += 3;
+            }
+
+            saveStats(s);
+            renderStats();
+
+            return { bonus, bonusText, streakLost, newStreak: s.currentStreak };
+        }
+
+        function openAvatarModal() { document.getElementById('avatarModal').classList.add('active'); }
+        function closeAvatarModal() { document.getElementById('avatarModal').classList.remove('active'); }
+        function openResetModal() { document.getElementById('resetModal').classList.add('active'); }
+        function closeResetModal() { document.getElementById('resetModal').classList.remove('active'); }
+
+        function confirmReset() {
+            localStorage.removeItem(STATS_KEY);
+            localStorage.removeItem(HISTORY_KEY);
+            renderStats();
+            renderHistory();
+            closeResetModal();
+        }
+
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.classList.remove('active');
+            });
+        });
 
         // ИГРА
         const socket = io();
@@ -230,6 +643,7 @@
         let myName = localStorage.getItem('pdd_player_name') || '';
         let myAvatar = parseInt(localStorage.getItem('pdd_player_avatar')) || 1;
         let opponentAvatar = 1;
+        let opponentName = 'Соперник';
         let reactionTimeouts = {};
 
         const TOTAL_AVATARS = 9;
@@ -251,13 +665,18 @@
         function selectAvatar(id) {
             myAvatar = id;
             localStorage.setItem('pdd_player_avatar', id);
-            document.querySelectorAll('.avatar-option').forEach(el => {
+            document.getElementById('headerAvatar').src = AVATARS_PATH + 'p' + id + '_normal.png';
+            document.querySelectorAll('#avatarGrid .avatar-option').forEach(el => {
                 el.classList.toggle('selected', parseInt(el.dataset.id) === id);
             });
+            closeAvatarModal();
         }
 
         if (myName) document.getElementById('playerName').value = myName;
+        document.getElementById('headerAvatar').src = AVATARS_PATH + 'p' + myAvatar + '_normal.png';
         buildAvatarGrid();
+        renderStats();
+        renderHistory();
 
         document.getElementById('playerName').addEventListener('input', (e) => {
             myName = e.target.value.trim();
@@ -266,15 +685,11 @@
 
         function reactAvatar(imgElement, state) {
             const key = imgElement.id;
-            if (reactionTimeouts[key]) {
-                clearTimeout(reactionTimeouts[key]);
-            }
+            if (reactionTimeouts[key]) clearTimeout(reactionTimeouts[key]);
             const avatarId = imgElement.dataset.avatarId;
             if (!avatarId) return;
-
             imgElement.src = AVATARS_PATH + 'p' + avatarId + '_' + state + '.png';
             imgElement.classList.add('reacting');
-
             reactionTimeouts[key] = setTimeout(() => {
                 imgElement.src = AVATARS_PATH + 'p' + avatarId + '_normal.png';
                 imgElement.classList.remove('reacting');
@@ -301,12 +716,11 @@
                 document.getElementById('status').innerHTML =
                     'Комната создана!<br>' +
                     '<div class="room-code" id="roomCodeBox">' + code + '</div><br>' +
-                    (copied 
+                    (copied
                         ? '<div class="copied-note">✅ Код скопирован</div>'
                         : '<div class="copied-note" style="color:#dc2626;">⚠️ Скопируйте вручную</div>'
                     ) +
                     '<div class="waiting-note">Отправьте код другу. Ждём второго игрока…</div>';
-
                 document.getElementById('roomCodeBox').onclick = () => {
                     navigator.clipboard.writeText(code).then(() => {
                         const box = document.getElementById('roomCodeBox');
@@ -341,19 +755,87 @@
         });
 
         socket.on('playersInfo', (data) => {
-            const opponentId = data.players.find(id => id !== myId);
-            const oppName = data.names[opponentId] || 'Соперник';
-            opponentAvatar = data.avatars[opponentId] || 1;
-
+            const oppId = data.players.find(id => id !== myId);
+            opponentName = data.names[oppId] || 'Соперник';
+            opponentAvatar = data.avatars[oppId] || 1;
             const myImg = document.getElementById('myAvatarImg');
             myImg.dataset.avatarId = myAvatar;
             myImg.src = AVATARS_PATH + 'p' + myAvatar + '_normal.png';
             document.getElementById('myNameBar').innerText = data.names[myId] || myName;
-
             const oppImg = document.getElementById('oppAvatarImg');
             oppImg.dataset.avatarId = opponentAvatar;
             oppImg.src = AVATARS_PATH + 'p' + opponentAvatar + '_normal.png';
-            document.getElementById('oppNameBar').innerText = oppName;
+            document.getElementById('oppNameBar').innerText = opponentName;
+        });
+        // === АНИМАЦИЯ ВЫБОРА БИЛЕТА ===
+        let ticketAnimationTimeout = null;
+
+        function showTicketAnimation(finalTicketNumber) {
+            // Скрываем все экраны, показываем анимацию
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('game').style.display = 'none';
+            document.getElementById('finalScreen').style.display = 'none';
+            document.getElementById('rematchWaiting').style.display = 'none';
+            document.getElementById('ticketAnimation').style.display = 'block';
+
+            const strip = document.getElementById('taStrip');
+            const window_ = document.getElementById('taWindow');
+            const subtitle = document.getElementById('taSubtitle');
+
+            // Сброс
+            window_.classList.remove('final');
+            subtitle.innerText = 'Определяем билет…';
+
+            // Все номера билетов (1..5 — можно поменять на динамику)
+            const ticketNumbers = [1, 2, 3, 4, 5];
+
+            // Генерируем ленту: 30 случайных номеров, последний — финальный
+            const stripItems = [];
+            for (let i = 0; i < 30; i++) {
+                stripItems.push(ticketNumbers[Math.floor(Math.random() * ticketNumbers.length)]);
+            }
+            stripItems.push(finalTicketNumber); // финальный
+
+            // Заполняем ленту
+            strip.innerHTML = '';
+            stripItems.forEach(num => {
+                const div = document.createElement('div');
+                div.className = 'ta-number';
+                div.innerText = num;
+                strip.appendChild(div);
+            });
+
+            // Начальная позиция
+            strip.style.transition = 'none';
+            strip.style.transform = 'translateY(0)';
+
+            // Через тик запускаем анимацию
+            setTimeout(() => {
+                const totalItems = stripItems.length;
+                const finalOffset = (totalItems - 1) * 120; // высота одной ячейки = 120px
+                strip.style.transition = 'transform 3s cubic-bezier(0.15, 0.85, 0.35, 1)';
+                strip.style.transform = 'translateY(-' + finalOffset + 'px)';
+            }, 50);
+
+            // Через 3 секунды — финальный «дзынь» и подсветка
+            clearTimeout(ticketAnimationTimeout);
+            ticketAnimationTimeout = setTimeout(() => {
+                window_.classList.add('final');
+                soundTicketFinal();
+                subtitle.innerText = 'Билет ' + finalTicketNumber + '. Готовьтесь…';
+            }, 3050);
+        }
+
+        // Звук финального выбора билета
+        function soundTicketFinal() {
+            playTone(660, 0.12, 'sine', 0.15, 0);
+            playTone(880, 0.12, 'sine', 0.15, 0.12);
+            playTone(1320, 0.35, 'sine', 0.18, 0.24);
+        }
+
+        // Событие от сервера: показать анимацию
+        socket.on('ticketChosen', (data) => {
+            showTicketAnimation(data.ticketNumber);
         });
 
         socket.on('nextQuestion', (data) => {
@@ -367,10 +849,9 @@
         function showQuestion(data) {
             hasAnswered = false;
             const q = data.question;
-            document.getElementById('questionInfo').innerText = 
+            document.getElementById('questionInfo').innerText =
                 'Вопрос ' + data.questionNumber + ' из ' + data.totalQuestions;
             document.getElementById('questionText').innerText = q.text;
-
             const img = document.getElementById('questionImage');
             if (q.image) {
                 img.src = '/images/' + q.image;
@@ -379,11 +860,9 @@
                 img.src = '';
                 img.style.display = 'none';
             }
-
             const optionsDiv = document.getElementById('options');
             optionsDiv.innerHTML = '';
             optionsDiv.classList.remove('disabled');
-
             q.options.forEach((opt, index) => {
                 const btn = document.createElement('button');
                 btn.innerText = opt;
@@ -391,56 +870,33 @@
                 btn.onclick = () => submitAnswer(index);
                 optionsDiv.appendChild(btn);
             });
-
-            // Таймер + прогресс-бар
             let timeLeft = 15;
             const bar = document.getElementById('timeBar');
             const timerEl = document.getElementById('timer');
-
             const updateTimer = () => {
                 timerEl.innerText = '⏱ Осталось: ' + timeLeft + ' сек';
                 bar.style.width = (timeLeft / 15 * 100) + '%';
-
-                // Цвет полосы и таймера
                 let color;
-                if (timeLeft > 10) color = '#22c55e';       // зелёный
-                else if (timeLeft > 5) color = '#f59e0b';   // жёлтый
-                else color = '#ef4444';                     // красный
+                if (timeLeft > 10) color = '#22c55e';
+                else if (timeLeft > 5) color = '#f59e0b';
+                else color = '#ef4444';
                 bar.style.background = color;
                 timerEl.style.color = color;
-
-                // Пульсация в последние 5 секунд
-                if (timeLeft <= 5 && timeLeft > 0) {
-                    timerEl.classList.add('pulse');
-                } else {
-                    timerEl.classList.remove('pulse');
-                }
-
-                // Звук тика в последние 3 секунды
-                if (timeLeft <= 3 && timeLeft > 0) {
-                    soundTick();
-                }
+                if (timeLeft <= 5 && timeLeft > 0) timerEl.classList.add('pulse');
+                else timerEl.classList.remove('pulse');
+                if (timeLeft <= 3 && timeLeft > 0) soundTick();
             };
-
-            // Сброс перед стартом
             bar.style.transition = 'none';
             bar.style.width = '100%';
             bar.style.background = '#22c55e';
             timerEl.style.color = '#22c55e';
             timerEl.classList.remove('pulse');
-
-            // Принудительно применяем переход заново
-            setTimeout(() => {
-                bar.style.transition = 'width 1s linear, background-color 0.3s ease';
-            }, 50);
-
+            setTimeout(() => { bar.style.transition = 'width 1s linear, background-color 0.3s ease'; }, 50);
             updateTimer();
             clearInterval(timerInterval);
             timerInterval = setInterval(() => {
                 timeLeft--;
-                if (timeLeft >= 0) {
-                    updateTimer();
-                }
+                if (timeLeft >= 0) updateTimer();
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
                     timerEl.classList.remove('pulse');
@@ -467,10 +923,8 @@
                 const idx = parseInt(btn.dataset.index);
                 if (idx === data.correctIndex) btn.classList.add('correct');
             });
-
             const myImg = document.getElementById('myAvatarImg');
             reactAvatar(myImg, data.isCorrect ? 'happy' : 'sad');
-
             if (data.isCorrect) {
                 soundCorrect();
                 document.getElementById('timer').innerText = '✅ Верно! Ждём соперника...';
@@ -505,11 +959,24 @@
             document.getElementById('timer').style.color = '#1e3a5f';
         });
 
-        socket.on('youWon', (data) => showFinal('win', data));
-        socket.on('youLost', (data) => showFinal('lose', data));
-        socket.on('youTied', (data) => showFinal('tie', data));
+        socket.on('youWon', (data) => {
+            const info = updateStatsAfterMatch('win');
+            addMatchToHistory('win', data.myName, data.opponentName, data.myScore, data.opponentScore);
+            if (info.bonus) soundStreakBonus();
+            showFinal('win', data, info);
+        });
+        socket.on('youLost', (data) => {
+            const info = updateStatsAfterMatch('lose');
+            addMatchToHistory('lose', data.myName, data.opponentName, data.myScore, data.opponentScore);
+            showFinal('lose', data, info);
+        });
+        socket.on('youTied', (data) => {
+            const info = updateStatsAfterMatch('tie');
+            addMatchToHistory('tie', data.myName, data.opponentName, data.myScore, data.opponentScore);
+            showFinal('tie', data, info);
+        });
 
-        function showFinal(type, data) {
+        function showFinal(type, data, info) {
             clearInterval(timerInterval);
             document.getElementById('game').style.display = 'none';
             document.getElementById('rematchWaiting').style.display = 'none';
@@ -526,9 +993,34 @@
                 data.myName + ': <b>' + data.myScore + '</b><br>' +
                 data.opponentName + ': <b>' + data.opponentScore + '</b>';
 
+            // Блок серии
+            const streakInfo = document.getElementById('streakInfo');
+            streakInfo.style.display = 'block';
+
+            if (type === 'win') {
+                let streakHtml = '<div>🔥 Серия побед: <b>' + info.newStreak + '</b></div>';
+                streakHtml += '<div style="margin-top:6px;">Рейтинг: <b>+7</b>';
+                if (info.bonus) {
+                    streakHtml += ' <span class="streak-bonus">' + info.bonusText + '</span>';
+                }
+                streakHtml += '</div>';
+                streakInfo.innerHTML = streakHtml;
+            } else if (type === 'lose') {
+                let streakHtml = '<div>Рейтинг: <b>−5</b></div>';
+                if (info.streakLost > 0) {
+                    streakHtml += '<div style="margin-top:6px;"><span class="streak-lost">💔 Серия прервана (было: ' + info.streakLost + ')</span></div>';
+                }
+                streakInfo.innerHTML = streakHtml;
+            } else {
+                let streakHtml = '<div>Рейтинг: <b>+3</b></div>';
+                if (info.streakLost > 0) {
+                    streakHtml += '<div style="margin-top:6px;"><span class="streak-lost">💔 Серия прервана (было: ' + info.streakLost + ')</span></div>';
+                }
+                streakInfo.innerHTML = streakHtml;
+            }
+
             const message = document.getElementById('finalMessage');
             const btn = document.getElementById('finalButton');
-
             if (type === 'win') {
                 message.innerText = 'Отличная реакция! Вы знаете ПДД лучше ' + data.opponentName + '. 🚗💨';
                 btn.innerText = '🔄 Играть снова';
@@ -570,6 +1062,8 @@
             document.getElementById('status').innerText = 'Создайте новую комнату или войдите в существующую.';
             document.getElementById('roomInput').value = '';
             currentRoom = '';
+            renderStats();
+            renderHistory();
         }
 
         socket.on('rematchWaiting', () => {
