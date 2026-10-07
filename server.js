@@ -21,7 +21,7 @@ io.on('connection', (socket) => {
         const roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
         const name = (playerName || 'Игрок').slice(0, 20);
         const avatar = avatarId || 1;
-        const ticketData = pickRandomTicket(questions);
+        const ticketData = pickRandomTicket(questions, []);
 
         rooms[roomCode] = {
             players: [socket.id],
@@ -31,6 +31,7 @@ io.on('connection', (socket) => {
             scores: { [socket.id]: 0 },
             gameQuestions: ticketData.questions,
             currentTicket: ticketData.ticketNumber,
+            usedTickets: [ticketData.ticketNumber],
             answers: {},
             rematchVotes: {},
             rematchTimer: null
@@ -223,11 +224,24 @@ function startRematch(roomCode) {
 
     room.players.forEach(id => { room.scores[id] = 0; });
 
-    const ticketData = pickRandomTicket(questions);
+    // Выбираем билет, исключая уже сыгранные
+    const ticketData = pickRandomTicket(questions, room.usedTickets || []);
     room.gameQuestions = ticketData.questions;
     room.currentTicket = ticketData.ticketNumber;
 
-    // Показываем анимацию выбора билета
+    // Добавляем в использованные
+    if (!room.usedTickets) room.usedTickets = [];
+    room.usedTickets.push(ticketData.ticketNumber);
+
+    // Если сыграли все билеты — сбрасываем список
+    const allTickets = [...new Set(questions.map(q => q.ticket))];
+    if (room.usedTickets.length >= allTickets.length) {
+        console.log('Все билеты сыграны. Сбрасываем список.');
+        room.usedTickets = [];
+    }
+
+    console.log('Реванш в комнате:', roomCode, 'Билет:', ticketData.ticketNumber, 'Сыграно билетов:', room.usedTickets.length);
+
     io.to(roomCode).emit('rematchStarting');
 
     setTimeout(() => {
@@ -249,11 +263,20 @@ function cleanupRoom(roomCode) {
 }
 
 // Возвращает { questions: [...], ticketNumber: N }
-function pickRandomTicket(allQuestions) {
+// excludeTickets — массив билетов, которые НЕ надо выбирать
+function pickRandomTicket(allQuestions, excludeTickets = []) {
     const ticketNumbers = [...new Set(allQuestions.map(q => q.ticket))];
-    const randomTicket = ticketNumbers[Math.floor(Math.random() * ticketNumbers.length)];
+
+    // Исключаем использованные
+    const availableTickets = ticketNumbers.filter(t => !excludeTickets.includes(t));
+
+    // Если все использованы — берём любой
+    const pool = availableTickets.length > 0 ? availableTickets : ticketNumbers;
+    const randomTicket = pool[Math.floor(Math.random() * pool.length)];
+
     const ticketQuestions = allQuestions.filter(q => q.ticket === randomTicket);
     const shuffled = [...ticketQuestions].sort(() => 0.5 - Math.random());
+
     return {
         questions: shuffled.slice(0, Math.min(10, shuffled.length)),
         ticketNumber: randomTicket
