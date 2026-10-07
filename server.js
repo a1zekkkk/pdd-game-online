@@ -54,7 +54,10 @@ io.on('connection', (socket) => {
             socket.emit('errorMessage', 'Комната заполнена');
             return;
         }
-
+if (room.players.includes(socket.id)) {
+        socket.emit('errorMessage', 'Вы уже в этой комнате');
+        return;
+    }
         const name = (playerName || 'Игрок').slice(0, 20);
         const avatar = avatarId || 1;
 
