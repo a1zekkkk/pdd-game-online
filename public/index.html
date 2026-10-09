@@ -44,9 +44,67 @@
         input:focus { outline: none; border-color: #3b82f6; }
         #menu { background: rgba(255, 255, 255, 0.75); padding: 24px 22px; border-radius: 18px; box-shadow: 0 8px 24px rgba(30, 58, 95, 0.08); backdrop-filter: blur(10px); }
         #game { display: none; background: rgba(255, 255, 255, 0.88); padding: 22px 18px; border-radius: 18px; box-shadow: 0 8px 24px rgba(30, 58, 95, 0.08); }
-
+        /* Экран выбора режима */
+        #modeSelect {
+            display: none;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 18px;
+            padding: 24px 22px;
+            box-shadow: 0 8px 24px rgba(30, 58, 95, 0.08);
+        }
+        #modeSelect button {
+            margin: 10px 0;
+        }
+                /* Экран выбора билета сопернику */
+        #pickTicket {
+            display: none;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 18px;
+            padding: 24px 22px;
+            box-shadow: 0 8px 24px rgba(30, 58, 95, 0.08);
+        }
+        #pickTicketGrid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        #pickTicketGrid button {
+            margin: 0;
+            padding: 16px 8px;
+            font-size: 15px;
+            font-weight: 700;
+            background: #dbeafe;
+            color: #1e3a5f;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            min-height: auto;
+        }
+        #pickTicketGrid button:hover {
+            background: #bfdbfe;
+        }
+        #pickTicketGrid button.selected {
+            background: #22c55e;
+            color: #fff;
+            border-color: #16a34a;
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
+        }
+        #pickTicketGrid button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        @media (max-width: 480px) {
+            #pickTicketGrid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 6px;
+            }
+            #pickTicketGrid button {
+                padding: 12px 4px;
+                font-size: 14px;
+            }
+        }
         /* Экран анимации билета */
-        #ticketAnimation {
+                #ticketAnimation {
             display: none;
             text-align: center;
             padding: 60px 20px;
@@ -481,6 +539,28 @@
 
         <button class="reset-link" onclick="openResetModal()">Сбросить статистику</button>
     </div>
+        <!-- ЭКРАН ВЫБОРА РЕЖИМА -->
+    <div id="modeSelect">
+        <h2 style="text-align: center; color: #1e3a5f; margin: 0 0 8px;">Выберите режим</h2>
+        <p style="text-align: center; color: #64748b; margin: 0 0 20px; font-size: 14px;">Соперник увидит выбранный режим</p>
+
+        <button onclick="selectMode('duel')" style="background:#dbeafe; color:#1e3a5f; text-align:left; padding: 18px;">
+            <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">⚡ Дуэль</div>
+            <div style="font-size: 13px; color:#475569; font-weight: 400;">10 случайных вопросов из случайного билета. Быстро и динамично.</div>
+        </button>
+
+        <button onclick="selectMode('classic')" style="background:#dbeafe; color:#1e3a5f; text-align:left; padding: 18px;">
+            <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">🎓 Классика 20/20</div>
+            <div style="font-size: 13px; color:#475569; font-weight: 400;">Полный билет — 20 вопросов по порядку. Для обучения и автошкол.</div>
+        </button>
+
+        <button onclick="selectMode('pick')" style="background:#fce7f3; color:#831843; text-align:left; padding: 18px;">
+            <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">🎯 Выбери билет сопернику</div>
+            <div style="font-size: 13px; color:#831843; font-weight: 400;">Выбираете билеты друг другу. Азартно и непредсказуемо.</div>
+        </button>
+
+        <button onclick="goToMenu()" style="background:#94a3b8; color:#fff; margin-top: 12px;">↩️ Отмена</button>
+    </div>
     <div id="ticketAnimation">
         <div class="ta-label">Билет</div>
         <div class="ta-window" id="taWindow">
@@ -491,7 +571,24 @@
         <div class="ta-subtitle" id="taSubtitle"></div>
     </div>
 
-        <!-- ЭКРАН ВЫБОРА БИЛЕТА ДЛЯ ТРЕНИРОВКИ -->
+            <!-- ЭКРАН ВЫБОРА БИЛЕТА СОПЕРНИКУ -->
+    <div id="pickTicket">
+        <h2 style="text-align: center; color: #1e3a5f; margin: 0 0 8px;">🎯 Выбери билет сопернику</h2>
+        <p style="text-align: center; color: #64748b; margin: 0 0 20px; font-size: 14px;">Выбери билет, который достанется твоему сопернику</p>
+
+        <div id="pickTicketGrid"></div>
+
+        <div id="pickTicketActions" style="display:none;">
+            <p id="pickTicketInfo" style="text-align: center; color: #1e3a5f; font-weight: 600; font-size: 16px; margin: 16px 0;"></p>
+            <button onclick="confirmPickTicket()" style="background:#22c55e; color:#fff;">✅ Подтвердить выбор</button>
+            <button onclick="cancelPickTicket()" style="background:#94a3b8; color:#fff;">↩️ Выбрать другой билет</button>
+        </div>
+
+        <div id="pickTicketWaiting" style="display:none; text-align: center; padding: 40px 0;">
+            <div class="spinner"></div>
+            <p style="color: #64748b; font-size: 16px; margin-top: 10px;">Ждём соперника…</p>
+        </div>
+    </div>
     <div id="trainingSelect">
         <h2 style="text-align: center; color: #1e3a5f; margin: 0 0 8px;">🎯 Тренировка</h2>
         <p style="text-align: center; color: #64748b; margin: 0 0 20px;">Выберите билет</p>
@@ -545,7 +642,8 @@
         <div class="score" id="finalScore"></div>
         <div class="streak-info" id="streakInfo" style="display:none;"></div>
         <div class="message" id="finalMessage"></div>
-        <button id="finalButton" onclick="requestRematch()">🔄 Играть снова</button>
+             <button id="finalButton" onclick="requestRematch()">🔄 Играть снова</button>
+        <button onclick="changeMode()" style="background:#8b5cf6; color:#fff;">🎲 Другой режим</button>
         <button onclick="cancelRematch()" style="background:#94a3b8; color:#fff;">↩️ В меню</button>
     </div>
 
@@ -815,6 +913,8 @@
 
         socket.on('connect', () => { myId = socket.id; });
 
+                let selectedMode = null;
+
         function createRoom() {
             ensureAudio();
             const name = document.getElementById('playerName').value.trim();
@@ -824,55 +924,81 @@
                 return;
             }
             myName = name;
-            socket.emit('createRoom', { playerName: name, avatarId: myAvatar });
+
+            // Показываем экран выбора режима
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('modeSelect').style.display = 'block';
+        }
+
+        function selectMode(mode) {
+            selectedMode = mode;
+            document.getElementById('modeSelect').style.display = 'none';
+
+            // Возвращаем меню (там будет код комнаты)
+            document.getElementById('menu').style.display = 'block';
+
+            // Отправляем на сервер
+            socket.emit('createRoom', {
+                playerName: myName,
+                avatarId: myAvatar,
+                mode: mode
+            });
         }
 
         socket.on('roomCreated', (code) => {
-    currentRoom = code;
-    const showCode = (copied) => {
-        document.getElementById('status').innerHTML =
-            'Комната создана!<br>' +
-            '<div class="room-code" id="roomCodeBox">' + code + '</div><br>' +
-            (copied
-                ? '<div class="copied-note">✅ Код скопирован</div>'
-                : '<div class="copied-note" style="color:#dc2626;">⚠️ Скопируйте код вручную</div>'
-            ) +
-            '<div class="waiting-note">Отправьте код другу. Ждём второго игрока…</div>';
-        document.getElementById('roomCodeBox').onclick = () => {
+            currentRoom = code;
+            const showCode = (copied) => {
+                const modeNames = {
+                    'duel': '⚡ Дуэль',
+                    'classic': '🎓 Классика 20/20',
+                    'pick': '🎯 Выбери билет сопернику'
+                };
+                const modeLabel = selectedMode ? modeNames[selectedMode] : '';
+
+                document.getElementById('status').innerHTML =
+                    'Комната создана! Режим: <b>' + modeLabel + '</b><br>' +
+                    '<div class="room-code" id="roomCodeBox">' + code + '</div><br>' +
+                    (copied
+                        ? '<div class="copied-note">✅ Код скопирован</div>'
+                        : '<div class="copied-note" style="color:#dc2626;">⚠️ Скопируйте код вручную</div>'
+                    ) +
+                    '<div class="waiting-note">Отправьте код другу. Ждём второго игрока…</div>';
+
+                document.getElementById('roomCodeBox').onclick = () => {
+                    try {
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(code).then(() => {
+                                const box = document.getElementById('roomCodeBox');
+                                box.style.background = '#86efac';
+                                setTimeout(() => { box.style.background = ''; }, 400);
+                            }).catch(() => {});
+                        }
+                    } catch (e) {
+                        console.log('Clipboard error:', e);
+                    }
+                };
+            };
+
+            // Сначала показываем код
+            showCode(false);
+
+            // Потом пробуем скопировать
             try {
                 if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(code).then(() => {
-                        const box = document.getElementById('roomCodeBox');
-                        box.style.background = '#86efac';
-                        setTimeout(() => { box.style.background = ''; }, 400);
-                    }).catch(() => {});
+                    navigator.clipboard.writeText(code)
+                        .then(() => {
+                            const note = document.querySelector('.copied-note');
+                            if (note) {
+                                note.innerHTML = '✅ Код скопирован';
+                                note.style.color = '#16a34a';
+                            }
+                        })
+                        .catch(() => {});
                 }
             } catch (e) {
                 console.log('Clipboard error:', e);
             }
-        };
-    };
-
-    // Сначала показываем код (вдруг clipboard не работает)
-    showCode(false);
-
-    // Потом пробуем скопировать
-    try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(code)
-                .then(() => {
-                    const note = document.querySelector('.copied-note');
-                    if (note) {
-                        note.innerHTML = '✅ Код скопирован';
-                        note.style.color = '#16a34a';
-                    }
-                })
-                .catch(() => { /* оставляем "скопируйте вручную" */ });
-        }
-    } catch (e) {
-        console.log('Clipboard error:', e);
-    }
-});
+        });
 
         function joinRoom() {
             ensureAudio();
@@ -976,10 +1102,21 @@
         }
 
         // Событие от сервера: показать анимацию
-        socket.on('ticketChosen', (data) => {
+                        socket.on('ticketChosen', (data) => {
             showTicketAnimation(data.ticketNumber);
         });
 
+        // Сервер просит выбрать билет
+        socket.on('chooseTicketForOpponent', (data) => {
+            showPickTicketScreen(data.ticketCount || 40);
+        });
+
+        // Сервер сообщает, что соперник выбрал (ждём нашего выбора)
+        socket.on('opponentPickedTicket', () => {
+            document.getElementById('pickTicketInfo').innerText = 
+                'Выбран билет: ' + myPickedTicket + ' (соперник уже подтвердил)';
+        });
+        
         socket.on('nextQuestion', (data) => {
             document.getElementById('menu').style.display = 'none';
             document.getElementById('finalScreen').style.display = 'none';
@@ -1389,27 +1526,126 @@
             socket.emit('requestRematch', currentRoom);
         }
 
-        function cancelRematch() {
+                function cancelRematch() {
             iCanceledRematch = true;
             socket.emit('cancelRematch', currentRoom);
             goToMenu();
         }
 
-        function goToMenu() {
-    document.getElementById('finalScreen').style.display = 'none';
-    document.getElementById('rematchWaiting').style.display = 'none';
-    document.getElementById('ticketAnimation').style.display = 'none';
-    document.getElementById('game').style.display = 'none';
-    document.getElementById('trainingSelect').style.display = 'none';
-    document.getElementById('trainingGame').style.display = 'none';
-    document.getElementById('trainingResult').style.display = 'none'; 
-    document.getElementById('menu').style.display = 'block';
-    document.getElementById('status').innerText = 'Создайте новую комнату или войдите в существующую.';
-    document.getElementById('roomInput').value = '';
-    currentRoom = '';
-    renderStats();
-    renderHistory();
-}
+        function changeMode() {
+            iCanceledRematch = true;
+            socket.emit('cancelRematch', currentRoom);
+            currentRoom = '';
+            document.getElementById('finalScreen').style.display = 'none';
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('modeSelect').style.display = 'block';
+        }
+
+        // ============================================
+        // ВЫБОР БИЛЕТА СОПЕРНИКУ
+        // ============================================
+        let myPickedTicket = null;
+        let pickTicketTimeout = null;
+
+        // Показать экран выбора билета
+        function showPickTicketScreen(ticketCount) {
+            myPickedTicket = null;
+
+            // Скрываем все экраны
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('modeSelect').style.display = 'none';
+            document.getElementById('ticketAnimation').style.display = 'none';
+            document.getElementById('game').style.display = 'none';
+            document.getElementById('finalScreen').style.display = 'none';
+            document.getElementById('rematchWaiting').style.display = 'none';
+            document.getElementById('trainingSelect').style.display = 'none';
+            document.getElementById('trainingGame').style.display = 'none';
+            document.getElementById('trainingResult').style.display = 'none';
+
+            // Показываем экран выбора
+            document.getElementById('pickTicket').style.display = 'block';
+            document.getElementById('pickTicketActions').style.display = 'none';
+            document.getElementById('pickTicketWaiting').style.display = 'none';
+
+            // Строим сетку билетов
+            const grid = document.getElementById('pickTicketGrid');
+            grid.innerHTML = '';
+            for (let i = 1; i <= ticketCount; i++) {
+                const btn = document.createElement('button');
+                btn.innerText = i;
+                btn.dataset.ticket = i;
+                btn.onclick = () => selectPickTicket(i);
+                grid.appendChild(btn);
+            }
+
+            // Тайм-аут 30 секунд
+            clearTimeout(pickTicketTimeout);
+            pickTicketTimeout = setTimeout(() => {
+                if (myPickedTicket === null) {
+                    const randomTicket = Math.floor(Math.random() * ticketCount) + 1;
+                    myPickedTicket = randomTicket;
+                    confirmPickTicket();
+                }
+            }, 30000);
+        }
+
+        // Игрок выбрал билет (но ещё не подтвердил)
+        function selectPickTicket(ticketNumber) {
+            myPickedTicket = ticketNumber;
+
+            document.querySelectorAll('#pickTicketGrid button').forEach(btn => {
+                const num = parseInt(btn.dataset.ticket);
+                btn.classList.toggle('selected', num === ticketNumber);
+            });
+
+            document.getElementById('pickTicketActions').style.display = 'block';
+            document.getElementById('pickTicketInfo').innerText = 'Выбран билет: ' + ticketNumber;
+        }
+
+        // Подтверждение выбора
+        function confirmPickTicket() {
+            if (myPickedTicket === null) return;
+
+            clearTimeout(pickTicketTimeout);
+
+            socket.emit('chooseTicket', {
+                roomCode: currentRoom,
+                ticketNumber: myPickedTicket
+            });
+
+            document.getElementById('pickTicketGrid').style.display = 'none';
+            document.getElementById('pickTicketActions').style.display = 'none';
+            document.getElementById('pickTicketWaiting').style.display = 'block';
+        }
+
+        // Отмена выбора — выбрать другой
+        function cancelPickTicket() {
+            myPickedTicket = null;
+
+            document.querySelectorAll('#pickTicketGrid button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+
+            document.getElementById('pickTicketActions').style.display = 'none';
+        }
+
+                function goToMenu() {
+            document.getElementById('finalScreen').style.display = 'none';
+            document.getElementById('rematchWaiting').style.display = 'none';
+            document.getElementById('ticketAnimation').style.display = 'none';
+            document.getElementById('game').style.display = 'none';
+            document.getElementById('trainingSelect').style.display = 'none';
+            document.getElementById('trainingGame').style.display = 'none';
+            document.getElementById('trainingResult').style.display = 'none';
+            document.getElementById('modeSelect').style.display = 'none';
+            document.getElementById('menu').style.display = 'block';
+            document.getElementById('status').innerText = 'Создайте новую комнату или войдите в существующую.';
+            document.getElementById('roomInput').value = '';
+            currentRoom = '';
+            selectedMode = null;
+            renderStats();
+            renderHistory();
+        }
 
         socket.on('rematchWaiting', () => {
             const finalScreen = document.getElementById('finalScreen');

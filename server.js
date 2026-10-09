@@ -17,11 +17,14 @@ io.on('connection', (socket) => {
     console.log('Подключился игрок:', socket.id);
 
     // --- СОЗДАНИЕ КОМНАТЫ ---
-    socket.on('createRoom', ({ playerName, avatarId }) => {
+    socket.on('createRoom', ({ playerName, avatarId, mode }) => {
         const roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
         const name = (playerName || 'Игрок').slice(0, 20);
         const avatar = avatarId || 1;
-        const ticketData = pickRandomTicket(questions, []);
+        const chosenMode = mode || 'duel';
+
+        // Выбираем вопросы в зависимости от режима
+        const ticketData = pickQuestions(chosenMode);
 
         rooms[roomCode] = {
             players: [socket.id],
@@ -31,7 +34,7 @@ io.on('connection', (socket) => {
             scores: { [socket.id]: 0 },
             gameQuestions: ticketData.questions,
             currentTicket: ticketData.ticketNumber,
-            usedTickets: [ticketData.ticketNumber],
+            mode: chosenMode,
             answers: {},
             rematchVotes: {},
             rematchTimer: null
@@ -39,7 +42,7 @@ io.on('connection', (socket) => {
 
         socket.join(roomCode);
         socket.emit('roomCreated', roomCode);
-        console.log('Создана комната:', roomCode, 'Игрок:', name, 'Билет:', ticketData.ticketNumber);
+        console.log('Создана комната:', roomCode, '| Режим:', chosenMode, '| Билет:', ticketData.ticketNumber, '| Вопросов:', ticketData.questions.length);
     });
 
     // --- ПОДКЛЮЧЕНИЕ К КОМНАТЕ ---
@@ -54,10 +57,11 @@ io.on('connection', (socket) => {
             socket.emit('errorMessage', 'Комната заполнена');
             return;
         }
-if (room.players.includes(socket.id)) {
-        socket.emit('errorMessage', 'Вы уже в этой комнате');
-        return;
-    }
+        if (room.players.includes(socket.id)) {
+            socket.emit('errorMessage', 'Вы уже в этой комнате');
+            return;
+        }
+
         const name = (playerName || 'Игрок').slice(0, 20);
         const avatar = avatarId || 1;
 
@@ -67,7 +71,7 @@ if (room.players.includes(socket.id)) {
         room.scores[socket.id] = 0;
         socket.join(roomCode);
 
-        console.log('Игрок вошёл:', roomCode, 'Имя:', name, 'Билет:', room.currentTicket);
+        console.log('Игрок вошёл:', roomCode, '| Имя:', name);
 
         io.to(roomCode).emit('playersInfo', {
             names: room.names,
@@ -76,9 +80,9 @@ if (room.players.includes(socket.id)) {
         });
 
         // Показываем анимацию выбора билета
-        io.to(roomCode).emit('ticketChosen', { ticketNumber: room.currentTicket });
+        io.to(roomCode).emit('ticketChosen', { ticketNumber: room.currentTicket || 1 });
 
-        // Через 3 секунды — старт первого вопроса
+        // Через 3.2 секунды — старт первого вопроса
         setTimeout(() => {
             startNewRound(roomCode);
         }, 3200);
@@ -161,6 +165,31 @@ if (room.players.includes(socket.id)) {
 
 // --- ХЕЛПЕРЫ ---
 
+// Выбирает вопросы в зависимости от режима
+function pickQuestions(mode) {
+    // Собираем все уникальные номера билетов
+    const ticketNumbers = [...new Set(questions.map(q => q.ticket))];
+    // Берём случайный билет
+    const randomTicket = ticketNumbers[Math.floor(Math.random() * ticketNumbers.length)];
+    // Вопросы этого билета
+    const ticketQuestions = questions.filter(q => q.ticket === randomTicket);
+
+    if (mode === 'duel') {
+        // Дуэль: 10 случайных вопросов из билета
+        const shuffled = [...ticketQuestions].sort(() => 0.5 - Math.random());
+        return {
+            questions: shuffled.slice(0, Math.min(10, shuffled.length)),
+            ticketNumber: randomTicket
+        };
+    } else {
+        // Классика и Выбери билет: все 20 вопросов билета, по порядку
+        return {
+            questions: [...ticketQuestions].sort((a, b) => a.number - b.number),
+            ticketNumber: randomTicket
+        };
+    }
+}
+
 function startNewRound(roomCode) {
     const room = rooms[roomCode];
     if (!room) return;
@@ -227,28 +256,15 @@ function startRematch(roomCode) {
 
     room.players.forEach(id => { room.scores[id] = 0; });
 
-    // Выбираем билет, исключая уже сыгранные
-    const ticketData = pickRandomTicket(questions, room.usedTickets || []);
+    // Новые вопросы того же режима
+        const ticketData = pickQuestions(room.mode);
     room.gameQuestions = ticketData.questions;
     room.currentTicket = ticketData.ticketNumber;
-
-    // Добавляем в использованные
-    if (!room.usedTickets) room.usedTickets = [];
-    room.usedTickets.push(ticketData.ticketNumber);
-
-    // Если сыграли все билеты — сбрасываем список
-    const allTickets = [...new Set(questions.map(q => q.ticket))];
-    if (room.usedTickets.length >= allTickets.length) {
-        console.log('Все билеты сыграны. Сбрасываем список.');
-        room.usedTickets = [];
-    }
-
-    console.log('Реванш в комнате:', roomCode, 'Билет:', ticketData.ticketNumber, 'Сыграно билетов:', room.usedTickets.length);
 
     io.to(roomCode).emit('rematchStarting');
 
     setTimeout(() => {
-        io.to(roomCode).emit('ticketChosen', { ticketNumber: room.currentTicket });
+        io.to(roomCode).emit('ticketChosen', { ticketNumber: 1 });
         setTimeout(() => {
             startNewRound(roomCode);
         }, 3200);
@@ -263,27 +279,6 @@ function cleanupRoom(roomCode) {
         clearTimeout(room.rematchTimer);
     }
     delete rooms[roomCode];
-}
-
-// Возвращает { questions: [...], ticketNumber: N }
-// excludeTickets — массив билетов, которые НЕ надо выбирать
-function pickRandomTicket(allQuestions, excludeTickets = []) {
-    const ticketNumbers = [...new Set(allQuestions.map(q => q.ticket))];
-
-    // Исключаем использованные
-    const availableTickets = ticketNumbers.filter(t => !excludeTickets.includes(t));
-
-    // Если все использованы — берём любой
-    const pool = availableTickets.length > 0 ? availableTickets : ticketNumbers;
-    const randomTicket = pool[Math.floor(Math.random() * pool.length)];
-
-    const ticketQuestions = allQuestions.filter(q => q.ticket === randomTicket);
-    const shuffled = [...ticketQuestions].sort(() => 0.5 - Math.random());
-
-    return {
-        questions: shuffled.slice(0, Math.min(10, shuffled.length)),
-        ticketNumber: randomTicket
-    };
 }
 
 server.listen(process.env.PORT || 3000, '0.0.0.0', () => {
