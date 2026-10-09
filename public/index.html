@@ -171,16 +171,16 @@
             box-shadow: 0 8px 24px rgba(30, 58, 95, 0.08);
         }
 
-        #ticketButtons {
+                #ticketButtons {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
             margin-bottom: 8px;
         }
         #ticketButtons button {
             margin: 0;
-            padding: 20px;
-            font-size: 18px;
+            padding: 14px 8px;
+            font-size: 15px;
             background: #dbeafe;
             color: #1e3a5f;
             font-weight: 700;
@@ -240,9 +240,9 @@
             color: #16a34a;
         }
 
-        @media (max-width: 480px) {
-            #ticketButtons { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-            #ticketButtons button { padding: 16px; font-size: 16px; }
+                @media (max-width: 480px) {
+            #ticketButtons { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+            #ticketButtons button { padding: 12px 4px; font-size: 14px; }
         }
 
         #questionInfo { color: #64748b; font-size: 13px; font-weight: 600; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 8px; }
