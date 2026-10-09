@@ -1116,6 +1116,14 @@
             document.getElementById('pickTicketInfo').innerText = 
                 'Выбран билет: ' + myPickedTicket + ' (соперник уже подтвердил)';
         });
+
+                // Сервер сам выбрал билет за игрока (тайм-аут)
+        socket.on('ticketAutoChosen', (data) => {
+            myPickedTicket = data.ticketNumber;
+            document.getElementById('pickTicketGrid').style.display = 'none';
+            document.getElementById('pickTicketActions').style.display = 'none';
+            document.getElementById('pickTicketWaiting').style.display = 'block';
+        });
         
         socket.on('nextQuestion', (data) => {
             document.getElementById('menu').style.display = 'none';
