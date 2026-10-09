@@ -16,6 +16,9 @@ const rooms = {};
 io.on('connection', (socket) => {
     console.log('Подключился игрок:', socket.id);
 
+    // Отправляем всем актуальный онлайн
+    io.emit('onlineCount', io.sockets.sockets.size);
+
     // --- СОЗДАНИЕ КОМНАТЫ ---
     socket.on('createRoom', ({ playerName, avatarId, mode }) => {
         const roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -194,8 +197,10 @@ io.on('connection', (socket) => {
         cleanupRoom(roomCode);
     });
 
-    socket.on('disconnect', () => {
+        socket.on('disconnect', () => {
         console.log('Игрок отключился:', socket.id);
+        // Обновляем онлайн у всех
+        io.emit('onlineCount', io.sockets.sockets.size);
     });
 });
 

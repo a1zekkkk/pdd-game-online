@@ -492,6 +492,9 @@
 
     <div id="menu">
         <h1>🚗 ПДД Дуэль</h1>
+                <div id="onlineBadge" style="text-align: center; font-size: 14px; color: #16a34a; font-weight: 600; margin: -10px 0 16px;">
+            🟢 Онлайн: <span id="onlineNumber">0</span>
+        </div>
 
         <div class="player-header">
             <div class="avatar-btn" onclick="openAvatarModal()">
@@ -912,6 +915,10 @@
         }
 
         socket.on('connect', () => { myId = socket.id; });
+                // Счётчик онлайна
+        socket.on('onlineCount', (count) => {
+            document.getElementById('onlineNumber').innerText = count;
+        });
 
                 let selectedMode = null;
 
