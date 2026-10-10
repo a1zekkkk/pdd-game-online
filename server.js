@@ -41,19 +41,241 @@ const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, 'public')));
 // Страница статистики
-app.get('/stats', (req, res) => {
+// API — JSON со статистикой
+app.get('/api/stats', (req, res) => {
     const totalUsers = io.sockets.sockets.size;
     const today = new Date().toISOString().slice(0, 10);
 
-    const statsResponse = {
+    res.json({
         online: totalUsers,
         totalGames: stats.totalGames,
         todayGames: stats.gamesByDay[today] || 0,
         gamesByDay: stats.gamesByDay,
         serverTime: new Date().toISOString()
-    };
+    });
+});
+// Красивая страница статистики
+app.get('/stats', (req, res) => {
+    res.send(`
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Статистика ПДД Дуэль</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, #eef2f7 0%, #dbe4f0 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #1f2937;
+        }
+        .container {
+            max-width: 640px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e3a5f;
+            margin-bottom: 24px;
+        }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            padding: 20px 16px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(30, 58, 95, 0.08);
+            transition: transform 0.15s;
+        }
+        .card:hover { transform: translateY(-2px); }
+        .card .icon { font-size: 28px; margin-bottom: 8px; }
+        .card .value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e3a5f;
+            margin-bottom: 4px;
+        }
+        .card .label {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .chart-block {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(30, 58, 95, 0.08);
+        }
+        .chart-title {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+        .chart-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .chart-row .date {
+            width: 100px;
+            color: #475569;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .chart-row .bar-wrap {
+            flex: 1;
+            background: #e2e8f0;
+            border-radius: 6px;
+            height: 24px;
+            margin-right: 12px;
+            overflow: hidden;
+        }
+        .chart-row .bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #22c55e);
+            border-radius: 6px;
+            transition: width 0.5s ease;
+            min-width: 4px;
+        }
+        .chart-row .count {
+            width: 40px;
+            text-align: right;
+            font-weight: 700;
+            color: #1e3a5f;
+        }
+        .empty {
+            text-align: center;
+            color: #94a3b8;
+            font-style: italic;
+            padding: 20px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+        .live-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+            margin-right: 6px;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        @media (max-width: 480px) {
+            .cards { grid-template-columns: 1fr; gap: 8px; }
+            .card { padding: 16px; }
+            .card .value { font-size: 26px; }
+            .chart-row .date { width: 80px; font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Статистика ПДД Дуэль</h1>
 
-    res.json(statsResponse);
+        <div class="cards">
+            <div class="card">
+                <div class="icon">🟢</div>
+                <div class="value" id="online">—</div>
+                <div class="label">Онлайн</div>
+            </div>
+            <div class="card">
+                <div class="icon">🎮</div>
+                <div class="value" id="today">—</div>
+                <div class="label">Сегодня</div>
+            </div>
+            <div class="card">
+                <div class="icon">🏆</div>
+                <div class="value" id="total">—</div>
+                <div class="label">Всего игр</div>
+            </div>
+        </div>
+
+        <div class="chart-block">
+            <div class="chart-title">📈 Игры по дням</div>
+            <div id="chart">
+                <div class="empty">Пока нет данных</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <span class="live-dot"></span>Обновляется каждые 5 секунд
+        </div>
+    </div>
+
+    <script>
+        async function updateStats() {
+            try {
+                const res = await fetch('/api/stats');
+                const data = await res.json();
+
+                document.getElementById('online').innerText = data.online;
+                document.getElementById('today').innerText = data.todayGames;
+                document.getElementById('total').innerText = data.totalGames;
+
+                const chart = document.getElementById('chart');
+                const entries = Object.entries(data.gamesByDay);
+
+                if (entries.length === 0) {
+                    chart.innerHTML = '<div class="empty">Пока нет данных</div>';
+                    return;
+                }
+
+                // Сортируем по дате (старые сверху)
+                entries.sort((a, b) => a[0].localeCompare(b[0]));
+
+                // Берём последние 14 дней
+                const last14 = entries.slice(-14);
+                const maxCount = Math.max(...last14.map(e => e[1]), 1);
+
+                let html = '';
+                last14.forEach(([date, count]) => {
+                    const percent = (count / maxCount) * 100;
+                    html += '<div class="chart-row">' +
+                        '<span class="date">' + date + '</span>' +
+                        '<div class="bar-wrap"><div class="bar" style="width:' + percent + '%"></div></div>' +
+                        '<span class="count">' + count + '</span>' +
+                        '</div>';
+                });
+
+                chart.innerHTML = html;
+            } catch (e) {
+                console.error('Ошибка:', e);
+            }
+        }
+
+        updateStats();
+        setInterval(updateStats, 5000);
+    </script>
+</body>
+</html>
+    `);
 });
 
 const rooms = {};
