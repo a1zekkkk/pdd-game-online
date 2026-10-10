@@ -55,6 +55,14 @@
         #modeSelect button {
             margin: 10px 0;
         }
+                /* Экран поиска соперника */
+        #matchmaking {
+            display: none;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 18px;
+            padding: 24px 22px;
+            box-shadow: 0 8px 24px rgba(30, 58, 95, 0.08);
+        }
                 /* Экран выбора билета сопернику */
         #pickTicket {
             display: none;
@@ -508,13 +516,19 @@
         <button onclick="createRoom()">Создать комнату</button>
         <hr style="border:none; border-top:1px solid #e2e8f0; margin: 14px 0;">
         <input id="roomInput" placeholder="Введите код комнаты" autocomplete="off" autocapitalize="characters" maxlength="6">
-        <button onclick="joinRoom()">Войти в комнату</button>
+                <button onclick="joinRoom()">Войти в комнату</button>
 
-                <hr style="border:none; border-top:1px solid #e2e8f0; margin: 14px 0;">
+        <hr style="border:none; border-top:1px solid #e2e8f0; margin: 14px 0;">
+        <button onclick="startOnlineGame()" style="background:#8b5cf6; color:#fff; text-align:left; padding: 18px;">
+            <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">🌐 Онлайн игра</div>
+            <div style="font-size: 13px; color:#e0d4ff; font-weight: 400;">Найти случайного соперника. Режим (дуэль или классика) выбирается автоматически.</div>
+        </button>
+
+        <hr style="border:none; border-top:1px solid #e2e8f0; margin: 14px 0;">
         <button onclick="startTraining()" style="background:#22c55e; color:#fff;">🎯 Тренировка</button>
-        <p id="status"></p>
+                <p id="status"></p>
 
-        <!-- Статистика -->
+        <!-- Статистика -->ы
         <div class="stats-block">
             <h4>📊 Моя статистика</h4>
             <div class="stats-row"><span>Матчей</span><b id="statTotal">0</b></div>
@@ -543,7 +557,16 @@
         <button class="reset-link" onclick="openResetModal()">Сбросить статистику</button>
     </div>
         <!-- ЭКРАН ВЫБОРА РЕЖИМА -->
-    <div id="modeSelect">
+        <div id="matchmaking">
+        <h2 style="text-align: center; color: #1e3a5f; margin: 0 0 8px;">🌐 Поиск соперника</h2>
+        <p style="text-align: center; color: #64748b; margin: 0 0 20px; font-size: 14px;">Ищем игрока с таким же желанием поиграть…</p>
+        <div style="text-align: center; padding: 30px 0;">
+            <div class="spinner"></div>
+            <p style="color: #64748b; font-size: 16px; margin-top: 14px;" id="matchmakingStatus">Ищем соперника…</p>
+        </div>
+        <button onclick="cancelMatchmaking()" style="background:#94a3b8; color:#fff;">↩️ Отменить поиск</button>
+    </div>
+        <div id="modeSelect">
         <h2 style="text-align: center; color: #1e3a5f; margin: 0 0 8px;">Выберите режим</h2>
         <p style="text-align: center; color: #64748b; margin: 0 0 20px; font-size: 14px;">Соперник увидит выбранный режим</p>
 
@@ -919,9 +942,59 @@
         socket.on('onlineCount', (count) => {
             document.getElementById('onlineNumber').innerText = count;
         });
+                // Сервер нашёл матч
+                socket.on('matchFound', (data) => {
+            console.log('Матч найден:', data);
+            currentRoom = data.roomCode;
+            selectedMode = data.mode;
+
+            // Скрываем все экраны
+            document.getElementById('matchmaking').style.display = 'none';
+            document.getElementById('menu').style.display = 'none';
+
+            // Показываем экран анимации билета
+            document.getElementById('ticketAnimation').style.display = 'block';
+            document.getElementById('taSubtitle').innerText = 'Готовьтесь…';
+        });
+
+        // Сервер не нашёл матч (тайм-аут 30 секунд)
+        socket.on('matchTimeout', (msg) => {
+            document.getElementById('matchmaking').style.display = 'none';
+            document.getElementById('menu').style.display = 'block';
+            document.getElementById('status').innerText = '⚠️ ' + msg;
+        });
 
                 let selectedMode = null;
 
+                // ============================================
+        // ОНЛАЙН ИГРА (ПОИСК СОПЕРНИКА)
+        // ============================================
+        function startOnlineGame() {
+            ensureAudio();
+            const name = document.getElementById('playerName').value.trim();
+            if (!name) {
+                document.getElementById('status').innerText = '⚠️ Введите имя';
+                document.getElementById('playerName').focus();
+                return;
+            }
+            myName = name;
+
+            // Показываем экран поиска
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('matchmaking').style.display = 'block';
+            document.getElementById('matchmakingStatus').innerText = 'Ищем соперника…';
+
+            // Отправляем на сервер
+            socket.emit('findMatch', {
+                playerName: name,
+                avatarId: myAvatar
+            });
+        }
+
+        function cancelMatchmaking() {
+            socket.emit('cancelMatch', {});
+            goToMenu();
+        }        
         function createRoom() {
             ensureAudio();
             const name = document.getElementById('playerName').value.trim();
@@ -954,7 +1027,9 @@
 
         socket.on('roomCreated', (code) => {
             currentRoom = code;
+            console.log('roomCreated, status =', document.getElementById('status'));
             const showCode = (copied) => {
+                console.log('showCode, status =', document.getElementById('status'));
                 const modeNames = {
                     'duel': '⚡ Дуэль',
                     'classic': '🎓 Классика 20/20',
@@ -1045,12 +1120,18 @@
         // === АНИМАЦИЯ ВЫБОРА БИЛЕТА ===
         let ticketAnimationTimeout = null;
 
-        function showTicketAnimation(finalTicketNumber) {
+                function showTicketAnimation(finalTicketNumber) {
             // Скрываем все экраны, показываем анимацию
             document.getElementById('menu').style.display = 'none';
             document.getElementById('game').style.display = 'none';
             document.getElementById('finalScreen').style.display = 'none';
             document.getElementById('rematchWaiting').style.display = 'none';
+            document.getElementById('pickTicket').style.display = 'none';        
+            document.getElementById('trainingSelect').style.display = 'none';    
+            document.getElementById('trainingGame').style.display = 'none';     
+            document.getElementById('trainingResult').style.display = 'none';    
+            document.getElementById('matchmaking').style.display = 'none';       
+            document.getElementById('modeSelect').style.display = 'none';        
             document.getElementById('ticketAnimation').style.display = 'block';
 
             const strip = document.getElementById('taStrip');
@@ -1132,10 +1213,12 @@
             document.getElementById('pickTicketWaiting').style.display = 'block';
         });
         
-        socket.on('nextQuestion', (data) => {
+                socket.on('nextQuestion', (data) => {
             document.getElementById('menu').style.display = 'none';
             document.getElementById('finalScreen').style.display = 'none';
             document.getElementById('rematchWaiting').style.display = 'none';
+            document.getElementById('pickTicket').style.display = 'none';     
+            document.getElementById('ticketAnimation').style.display = 'none'; 
             document.getElementById('game').style.display = 'block';
             showQuestion(data);
         });
@@ -1245,22 +1328,26 @@
         });
 
         socket.on('roundResult', (data) => {
-            clearInterval(timerInterval);
-            document.getElementById('timer').classList.remove('pulse');
-            const buttons = document.querySelectorAll('#options button');
-            buttons.forEach((btn) => {
-                const idx = parseInt(btn.dataset.index);
-                if (idx === data.correctIndex) btn.classList.add('correct');
-            });
-            const myScore = data.scores[myId] || 0;
-            const opponentId = Object.keys(data.scores).find(id => id !== myId);
-            const opponentScore = data.scores[opponentId] || 0;
-            const oppName = data.names[opponentId] || 'Соперник';
-            document.getElementById('timer').innerText =
-                '📊 ' + myName + ': ' + myScore + ' | ' + oppName + ': ' + opponentScore;
-            document.getElementById('timer').style.color = '#1e3a5f';
-        });
+    clearInterval(timerInterval);
+    document.getElementById('timer').classList.remove('pulse');
 
+    // Подсвечиваем правильный ответ ТОЛЬКО если он есть
+    if (data.correctIndex !== null && data.correctIndex !== undefined) {
+        const buttons = document.querySelectorAll('#options button');
+        buttons.forEach((btn) => {
+            const idx = parseInt(btn.dataset.index);
+            if (idx === data.correctIndex) btn.classList.add('correct');
+        });
+    }
+
+    const myScore = data.scores[myId] || 0;
+    const opponentId = Object.keys(data.scores).find(id => id !== myId);
+    const opponentScore = data.scores[opponentId] || 0;
+    const oppName = data.names[opponentId] || 'Соперник';
+    document.getElementById('timer').innerText =
+        '📊 ' + myName + ': ' + myScore + ' | ' + oppName + ': ' + opponentScore;
+    document.getElementById('timer').style.color = '#1e3a5f';
+});
                 // ============================================
         // РЕЖИМ ТРЕНИРОВКИ
         // ============================================
@@ -1653,6 +1740,7 @@
             document.getElementById('trainingGame').style.display = 'none';
             document.getElementById('trainingResult').style.display = 'none';
             document.getElementById('modeSelect').style.display = 'none';
+            document.getElementById('matchmaking').style.display = 'none';
             document.getElementById('menu').style.display = 'block';
             document.getElementById('status').innerText = 'Создайте новую комнату или войдите в существующую.';
             document.getElementById('roomInput').value = '';

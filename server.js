@@ -280,6 +280,12 @@ app.get('/stats', (req, res) => {
 
 const rooms = {};
 
+// Очередь матчмейкинга (общая для duel + classic)
+const matchQueue = [];  // [{ socketId, playerName, avatarId, timer }]
+
+// Тайм-аут ожидания (30 секунд)
+const MATCH_TIMEOUT = 30000;
+
 io.on('connection', (socket) => {
     console.log('Подключился игрок:', socket.id);
 
@@ -465,13 +471,57 @@ io.on('connection', (socket) => {
         socket.to(roomCode).emit('rematchCanceled', 'Соперник отказался от реванша.');
         cleanupRoom(roomCode);
     });
+        // --- ПОИСК СОПЕРНИКА (ОНЛАЙН ИГРА) ---
+    socket.on('findMatch', ({ playerName, avatarId }) => {
+        if (matchQueue.find(p => p.socketId === socket.id)) return;
 
-        socket.on('disconnect', () => {
-        console.log('Игрок отключился:', socket.id);
-        // Обновляем онлайн у всех
-        io.emit('onlineCount', io.sockets.sockets.size);
+        const name = (playerName || 'Игрок').slice(0, 20);
+        const avatar = avatarId || 1;
+
+        console.log('Игрок встал в очередь:', name, '(' + socket.id + ')');
+
+        const timer = setTimeout(() => {
+            const idx = matchQueue.findIndex(p => p.socketId === socket.id);
+            if (idx !== -1) {
+                matchQueue.splice(idx, 1);
+                socket.emit('matchTimeout', 'Соперников не найдено. Попробуйте позже или создайте комнату.');
+                console.log('Тайм-аут поиска:', socket.id);
+            }
+        }, MATCH_TIMEOUT);
+
+        matchQueue.push({
+            socketId: socket.id,
+            playerName: name,
+            avatarId: avatar,
+            timer: timer
+        });
+
+        tryCreateMatch();
     });
-});
+
+    // --- ОТМЕНА ПОИСКА ---
+    socket.on('cancelMatch', () => {
+        const idx = matchQueue.findIndex(p => p.socketId === socket.id);
+        if (idx !== -1) {
+            if (matchQueue[idx].timer) clearTimeout(matchQueue[idx].timer);
+            matchQueue.splice(idx, 1);
+            console.log('Поиск отменён:', socket.id);
+        }
+    });
+
+            socket.on('disconnect', () => {
+        console.log('Игрок отключился:', socket.id);
+        io.emit('onlineCount', io.sockets.sockets.size);
+
+        // Убираем из очереди матчмейкинга
+        const idx = matchQueue.findIndex(p => p.socketId === socket.id);
+        if (idx !== -1) {
+            if (matchQueue[idx].timer) clearTimeout(matchQueue[idx].timer);
+            matchQueue.splice(idx, 1);
+            console.log('Игрок удалён из очереди:', socket.id);
+        }
+    });
+    });
 
 // --- ХЕЛПЕРЫ ---
 
@@ -562,22 +612,30 @@ function endRound(roomCode) {
 
     // Определяем правильный ответ для показа
     let correctIndex;
-    if (room.mode === 'pick') {
-        // У каждого свой вопрос — берём вопрос первого игрока для показа
-        const firstId = room.players[0];
-        const qIndex = room.playerQuestionIndex[firstId];
-        correctIndex = room.playerQuestions[firstId][qIndex].correct;
+        if (room.mode === 'pick') {
+        // Для pick — каждому СВОЙ правильный ответ
+        room.players.forEach(id => {
+            const qIndex = room.playerQuestionIndex[id];
+            const correctIndex = room.playerQuestions[id][qIndex].correct;
+            io.to(id).emit('roundResult', {
+                correctIndex: correctIndex,
+                scores: room.scores,
+                names: room.names,
+                avatars: room.avatars,
+                answers: room.answers
+            });
+        });
     } else {
-        correctIndex = room.gameQuestions[room.currentQuestionIndex].correct;
+        // Для duel / classic — общий правильный ответ
+        const correctIndex = room.gameQuestions[room.currentQuestionIndex].correct;
+        io.to(roomCode).emit('roundResult', {
+            correctIndex: correctIndex,
+            scores: room.scores,
+            names: room.names,
+            avatars: room.avatars,
+            answers: room.answers
+        });
     }
-
-    io.to(roomCode).emit('roundResult', {
-        correctIndex,
-        scores: room.scores,
-        names: room.names,
-        avatars: room.avatars,
-        answers: room.answers
-    });
 
     setTimeout(() => {
         if (room.mode === 'pick') {
@@ -682,6 +740,75 @@ function cleanupRoom(roomCode) {
     if (room.rematchTimer) clearTimeout(room.rematchTimer);
     if (room.pickTimeout) clearTimeout(room.pickTimeout);
     delete rooms[roomCode];
+}
+// Создаёт матч, если в очереди 2 игрока
+function tryCreateMatch() {
+    if (matchQueue.length < 2) return;
+
+    const player1 = matchQueue.shift();
+    const player2 = matchQueue.shift();
+
+    if (player1.timer) clearTimeout(player1.timer);
+    if (player2.timer) clearTimeout(player2.timer);
+
+    const mode = Math.random() < 0.5 ? 'duel' : 'classic';
+
+    const roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const ticketData = pickQuestions(mode);
+
+    rooms[roomCode] = {
+        players: [player1.socketId, player2.socketId],
+        names: {
+            [player1.socketId]: player1.playerName,
+            [player2.socketId]: player2.playerName
+        },
+        avatars: {
+            [player1.socketId]: player1.avatarId,
+            [player2.socketId]: player2.avatarId
+        },
+        scores: {
+            [player1.socketId]: 0,
+            [player2.socketId]: 0
+        },
+        mode: mode,
+        gameQuestions: ticketData.questions,
+        currentTicket: ticketData.ticketNumber,
+        currentQuestionIndex: 0,
+        answers: {},
+        rematchVotes: {},
+        rematchTimer: null,
+        playerQuestions: {},
+        playerTicketNumbers: {},
+        playerQuestionIndex: {},
+        chosenTickets: {}
+    };
+
+    const io1 = io.sockets.sockets.get(player1.socketId);
+    const io2 = io.sockets.sockets.get(player2.socketId);
+
+    if (io1) io1.join(roomCode);
+    if (io2) io2.join(roomCode);
+
+    console.log('Матч создан:', roomCode, '| Режим:', mode, '| Игроки:', player1.playerName, '+', player2.playerName);
+
+       // Отправляем обоим информацию об игроках
+    io.to(roomCode).emit('playersInfo', {
+        names: rooms[roomCode].names,
+        avatars: rooms[roomCode].avatars,
+        players: rooms[roomCode].players
+    });
+
+    // Отправляем matchFound
+    io.to(roomCode).emit('matchFound', { roomCode, mode });
+
+    // Анимация билета
+    setTimeout(() => {
+        io.to(roomCode).emit('ticketChosen', { ticketNumber: ticketData.ticketNumber });
+        // Через 3.2 сек — старт первого вопроса
+        setTimeout(() => {
+            startNewRound(roomCode);
+        }, 3200);
+    }, 500);
 }
 
 server.listen(process.env.PORT || 3000, '0.0.0.0', () => {
