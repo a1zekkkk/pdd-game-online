@@ -1,3 +1,6 @@
+# Статистика игр
+stats.json
+
 # Logs
 logs
 *.log
@@ -134,3 +137,6 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Статистика игр
+stats.json

@@ -4,6 +4,36 @@ const { Server } = require('socket.io');
 const path = require('path');
 
 const questions = require('./questions.json');
+const fs = require('fs');
+const STATS_FILE = './stats.json';
+
+// Загружаем статистику из файла (если есть)
+let stats = { totalGames: 0, gamesByDay: {} };
+try {
+    if (fs.existsSync(STATS_FILE)) {
+        stats = JSON.parse(fs.readFileSync(STATS_FILE, 'utf8'));
+    }
+} catch (e) {
+    console.log('Не удалось загрузить статистику:', e);
+}
+
+// Сохраняем статистику в файл
+function saveStats() {
+    try {
+        fs.writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2));
+    } catch (e) {
+        console.log('Не удалось сохранить статистику:', e);
+    }
+}
+
+// Увеличиваем счётчик за сегодня
+function incrementGamesToday() {
+    const today = new Date().toISOString().slice(0, 10); // "2026-10-09"
+    if (!stats.gamesByDay[today]) stats.gamesByDay[today] = 0;
+    stats.gamesByDay[today]++;
+    stats.totalGames++;
+    saveStats();
+}
 
 const app = express();
 const server = http.createServer(app);
@@ -27,6 +57,8 @@ io.on('connection', (socket) => {
         const chosenMode = mode || 'duel';
 
         const ticketData = pickQuestions(chosenMode);
+        
+        incrementGamesToday();
 
         rooms[roomCode] = {
             players: [socket.id],
@@ -50,7 +82,7 @@ io.on('connection', (socket) => {
 
         socket.join(roomCode);
         socket.emit('roomCreated', roomCode);
-        console.log('Создана комната:', roomCode, '| Режим:', chosenMode, '| Билет:', ticketData.ticketNumber);
+        console.log('Создана комната:', roomCode, '| Режим:', chosenMode, '| Билет:', ticketData.ticketNumber, '| Игр сегодня:', stats.gamesByDay[new Date().toISOString().slice(0, 10)]);
     });
 
     // --- ПОДКЛЮЧЕНИЕ К КОМНАТЕ ---
