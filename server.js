@@ -40,6 +40,21 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, 'public')));
+// Страница статистики
+app.get('/stats', (req, res) => {
+    const totalUsers = io.sockets.sockets.size;
+    const today = new Date().toISOString().slice(0, 10);
+
+    const statsResponse = {
+        online: totalUsers,
+        totalGames: stats.totalGames,
+        todayGames: stats.gamesByDay[today] || 0,
+        gamesByDay: stats.gamesByDay,
+        serverTime: new Date().toISOString()
+    };
+
+    res.json(statsResponse);
+});
 
 const rooms = {};
 
